@@ -1,6 +1,57 @@
 import React from 'react'
-import {NotebookList, RepositoryList} from "./RepoList";
+import {
+  CommitDetailComponent,
+  CommitListComponent,
+  CommitListPlaceHolder,
+  NotebookList,
+  RepositoryListComponent
+} from "./RepoList";
 import {Breadcrumb, Card, Container, Grid} from "semantic-ui-react";
+import {Link, Route, Switch, useParams} from "react-router-dom";
+
+
+// TODO: Move to own file.
+const interpolatePath = (tpl, args) => tpl.replace(/:(\w+)/g, (_, v) => args[v])
+
+const RouteBreadCrumbSection = ({path, name, divider = false}) => {
+  let params = useParams();
+  return (<>
+    {divider && <Breadcrumb.Divider/>}
+    <Breadcrumb.Section>
+      <Link to={interpolatePath(path, params)}>
+        {interpolatePath(name, params)}
+      </Link>
+    </Breadcrumb.Section>
+  </>)
+}
+const RouteBreadCrumb = ({path, name, divider = false}) => (
+  <Route path={path} strict={false} exact={false}>
+    <RouteBreadCrumbSection path={path} name={name} divider={divider}/>
+  </Route>
+)
+
+const CustomBreadCrumb = () => {
+  return (<Breadcrumb>
+    <Route path="/">
+      <Breadcrumb.Section>
+        <Link to='/repository'>Repositories</Link>
+      </Breadcrumb.Section>
+    </Route>
+    <RouteBreadCrumb path="/repository/:repositoryId" name=":repositoryId" divider/>
+    <RouteBreadCrumb path="/repository/:repositoryId/commit/:commitId" name=":commitId" divider/>
+  </Breadcrumb>)
+}
+
+const RepositoryView = () => {
+  let {repositoryId} = useParams();
+  return <CommitListComponent repositoryId={repositoryId}/>
+}
+
+const CommitView = () => {
+  let {repositoryId, commitId} = useParams();
+  return <CommitDetailComponent repositoryId={repositoryId} commitId={commitId} />
+}
+
 
 function AppHome() {
   return (
@@ -9,35 +60,25 @@ function AppHome() {
         <Grid columns={2}>
 
           <Grid.Row>
-            <Grid.Column fluid>
-              <Breadcrumb>
-                <Breadcrumb.Section link>Home</Breadcrumb.Section>
-                <Breadcrumb.Divider/>
-                <Breadcrumb.Section link>statisticsnorway/dapla-blueprint</Breadcrumb.Section>
-                <Breadcrumb.Divider/>
-                <Breadcrumb.Section active>4e6c87a - Some descripti(...)</Breadcrumb.Section>
-              </Breadcrumb>
-            </Grid.Column>
+              <CustomBreadCrumb/>
           </Grid.Row>
 
           <Grid.Row>
             <Grid.Column width={4}>
-              <RepositoryList/>
+              <RepositoryListComponent/>
             </Grid.Column>
             <Grid.Column width={12}>
-              <Card.Group>
-                <Card fluid>
-                  <Card.Content>
-                    <Card.Header>Commit title (first line)</Card.Header>
-                  </Card.Content>
-                  <Card.Content>
-                    <Grid columns={2} relaxed='very'>
-                      <Grid.Column>Some description of the commit</Grid.Column>
-                      <Grid.Column width={6}><NotebookList/></Grid.Column>
-                    </Grid>
-                  </Card.Content>
-                </Card>
-              </Card.Group>
+              <Switch>
+                <Route path="/repository/:repositoryId/commit/:commitId">
+                  <CommitView/>
+                </Route>
+                <Route path="/repository/:repositoryId">
+                  <RepositoryView/>
+                </Route>
+                <Route>
+                  <CommitListPlaceHolder/>
+                </Route>
+              </Switch>
             </Grid.Column>
           </Grid.Row>
 
