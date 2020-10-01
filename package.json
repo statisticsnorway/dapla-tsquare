@@ -9,6 +9,7 @@
     "moment": "^2.29.0",
     "react": "^16.13.1",
     "react-axios": "^2.0.3",
+    "react-checkbox-tree": "^1.6.0",
     "react-dom": "^16.13.1",
     "react-moment": "^1.0.0",
     "react-router-dom": "^5.2.0",

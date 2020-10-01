@@ -1,89 +1,10 @@
 import React from 'react'
-import {Icon, Header, Dimmer, List, Loader, Segment, Card, Grid} from "semantic-ui-react";
+import {Button, Card, Dimmer, Grid, Header, Icon, List, Loader, Segment} from "semantic-ui-react";
 import env from "@beam-australia/react-env";
 import {Get} from "react-axios"
 import Moment from "react-moment";
 import {Link} from "react-router-dom";
-
-export const NotebookList = () => (
-  <List>
-    <List.Item>
-      <List.Icon name='folder'/>
-      <List.Content>
-        <List.Header>src</List.Header>
-        <List.Description>Source files for project</List.Description>
-        <List.List>
-          <List.Item>
-            <List.Icon name='folder'/>
-            <List.Content>
-              <List.Header>site</List.Header>
-              <List.Description>Your site's theme</List.Description>
-            </List.Content>
-          </List.Item>
-          <List.Item>
-            <List.Icon name='folder'/>
-            <List.Content>
-              <List.Header>themes</List.Header>
-              <List.Description>Packaged theme files</List.Description>
-              <List.List>
-                <List.Item>
-                  <List.Icon name='folder'/>
-                  <List.Content>
-                    <List.Header>default</List.Header>
-                    <List.Description>Default packaged theme</List.Description>
-                  </List.Content>
-                </List.Item>
-                <List.Item>
-                  <List.Icon name='folder'/>
-                  <List.Content>
-                    <List.Header>my_theme</List.Header>
-                    <List.Description>
-                      Packaged themes are also available in this folder
-                    </List.Description>
-                  </List.Content>
-                </List.Item>
-              </List.List>
-            </List.Content>
-          </List.Item>
-          <List.Item>
-            <List.Icon name='file'/>
-            <List.Content>
-              <List.Header>theme.config</List.Header>
-              <List.Description>
-                Config file for setting packaged themes
-              </List.Description>
-            </List.Content>
-          </List.Item>
-        </List.List>
-      </List.Content>
-    </List.Item>
-    <List.Item>
-      <List.Icon name='folder'/>
-      <List.Content>
-        <List.Header>dist</List.Header>
-        <List.Description>Compiled CSS and JS files</List.Description>
-        <List.List>
-          <List.Item>
-            <List.Icon name='folder'/>
-            <List.Content>
-              <List.Header>components</List.Header>
-              <List.Description>
-                Individual component CSS and JS
-              </List.Description>
-            </List.Content>
-          </List.Item>
-        </List.List>
-      </List.Content>
-    </List.Item>
-    <List.Item>
-      <List.Icon name='file'/>
-      <List.Content>
-        <List.Header>semantic.json</List.Header>
-        <List.Description>Contains build settings for gulp</List.Description>
-      </List.Content>
-    </List.Item>
-  </List>
-)
+import {NotebookTreeComponent} from "./Notebooks";
 
 const exampleRepoPayload = [{
   "id": "9bf7399763ff968e4dbaf1bef11ad7b8f5a75c09",
@@ -166,7 +87,7 @@ export const CommitList = ({repositoryId, commits = [], test}) => {
 export const CommitListPlaceHolder = () => (
   <Segment placeholder>
     <Header icon>
-      <Icon name='arrow left' />
+      <Icon name='arrow left'/>
       Start by choosing a repository
     </Header>
   </Segment>
@@ -192,19 +113,27 @@ export const CommitListComponent = ({repositoryId}) => {
 
 export const CommitDetailComponent = ({repositoryId, commitId}) => {
   return (
-    <Card.Group>
-      <Card fluid>
-        <Card.Content>
-          <Card.Header>Commit title (first line) {commitId}</Card.Header>
-        </Card.Content>
-        <Card.Content>
-          <Grid columns={2} relaxed='very'>
-            <Grid.Column>Some description of the commit</Grid.Column>
-            <Grid.Column width={6}><NotebookList/></Grid.Column>
-          </Grid>
-        </Card.Content>
-      </Card>
-    </Card.Group>
+    <Card fluid>
+      <Card.Content>
+        <Card.Header>
+          Commit title (first line) {commitId}
+        </Card.Header>
+      </Card.Content>
+      <Card.Content>
+        <Grid columns={2} relaxed='very'>
+          <Grid.Column>Some description of the commit</Grid.Column>
+          <Grid.Column width={6}>
+            <NotebookTreeComponent repositoryId={repositoryId} commitId={commitId}/>
+          </Grid.Column>
+        </Grid>
+      </Card.Content>
+      <Card.Content>
+        <Button.Group icon>
+          <Button icon='play' content='Execute'/>
+          <Button icon='stop' content='Stop'/>
+        </Button.Group>
+      </Card.Content>
+    </Card>
   )
 }
 
