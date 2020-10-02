@@ -1,13 +1,8 @@
 import React from 'react'
-import {
-  CommitDetailComponent,
-  CommitListComponent,
-  CommitListPlaceHolder,
-  NotebookList,
-  RepositoryListComponent
-} from "./RepoList";
-import {Breadcrumb, Card, Container, Grid} from "semantic-ui-react";
+import {RepositoryListComponent} from "./RepoList";
+import {Breadcrumb, Container, Grid} from "semantic-ui-react";
 import {Link, Route, Switch, useParams} from "react-router-dom";
+import {CommitDetailComponent, CommitListComponent, CommitListPlaceHolder} from "./Commit";
 
 
 // TODO: Move to own file.
@@ -49,7 +44,7 @@ const RepositoryView = () => {
 
 const CommitView = () => {
   let {repositoryId, commitId} = useParams();
-  return <CommitDetailComponent repositoryId={repositoryId} commitId={commitId} />
+  return <CommitDetailComponent repositoryId={repositoryId} commitId={commitId}/>
 }
 
 
@@ -60,7 +55,7 @@ function AppHome() {
         <Grid columns={2}>
 
           <Grid.Row>
-              <CustomBreadCrumb/>
+            <CustomBreadCrumb/>
           </Grid.Row>
 
           <Grid.Row>

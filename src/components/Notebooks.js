@@ -33,33 +33,39 @@ const makeHierarchy = (notebooks) => {
 }
 
 const icons = {
-  check: <Icon name="check square"/>,
-  uncheck: <Icon name="square outline"/>,
-  halfCheck: <Icon name="minus square outline"/>,
-  expandClose: <Icon name="chevron right"/>,
-  expandOpen: <Icon name="chevron down"/>,
-  expandAll: <Icon name="plus square outline"/>,
-  collapseAll: <Icon className="rct-icon rct-icon-collapse-all" icon="minus-square"/>,
-  parentClose: <Icon name="folder outline"/>,
-  parentOpen: <Icon name="folder open outline"/>,
-  leaf: <Icon name="file code outline"/>
+  check: <Icon fitted name="check square"/>,
+  uncheck: <Icon fitted name="square outline"/>,
+  halfCheck: <Icon fitted name="minus square outline"/>,
+  expandClose: <Icon fitted name="chevron right"/>,
+  expandOpen: <Icon fitted name="chevron down"/>,
+  expandAll: <Icon fitted name="plus square outline"/>,
+  collapseAll: <Icon fitted className="rct-icon rct-icon-collapse-all" icon="minus-square"/>,
+  parentClose: <Icon fitted name="folder outline"/>,
+  parentOpen: <Icon fitted name="folder open outline"/>,
+  leaf: <Icon fitted name="file code outline"/>
 }
 
-export const NotebookTree = ({notebooks = []}) => {
+export const NotebookTree = ({notebooks = [], onSelect = () => {}}) => {
   const [checked, setChecked] = useState([]);
   const [expanded, setExpanded] = useState([]);
+
+  function select(checked) {
+    setChecked(checked);
+    onSelect(checked);
+  }
+
   return <CheckboxTree nodes={makeHierarchy(notebooks)}
                        icons={icons}
                        checked={checked}
                        expanded={expanded}
-                       onCheck={newChecked => setChecked(newChecked)}
+                       onCheck={newChecked => select(newChecked)}
                        onExpand={newExpanded => setExpanded(newExpanded)}
   />
 }
 
-export const NotebookTreeComponent = ({repositoryId, commitId}) => {
+export const NotebookTreeComponent = ({repositoryId, commitId, onSelect}) => {
 
-  const [{data, loading, error}, refetch] = useAxios(
+  const [{data, loading, error}] = useAxios(
     `${env('BLUEPRINT_HOST')}/api/v1/repositories/${repositoryId}/commits/${commitId}/notebooks`
   )
 
@@ -68,6 +74,6 @@ export const NotebookTreeComponent = ({repositoryId, commitId}) => {
     <Message.Header>Error</Message.Header>
     <p>{JSON.stringify(error)}</p>
   </Message>
-  return <NotebookTree notebooks={data}/>
+  return <NotebookTree notebooks={data} onSelect={onSelect}/>
 
 }
