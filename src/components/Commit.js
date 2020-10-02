@@ -1,19 +1,36 @@
 import React, {useState} from 'react'
-import {Button, Card, Dimmer, Grid, Header, Icon, List, Loader, Message, Segment, Table} from "semantic-ui-react";
+import {
+  Button,
+  Card,
+  Dimmer,
+  Divider,
+  Grid,
+  Header,
+  Icon,
+  Label,
+  List,
+  Loader,
+  Message,
+  Segment,
+  Table
+} from "semantic-ui-react";
 import {Link} from "react-router-dom";
 import Moment from "react-moment";
 import env from "@beam-australia/react-env";
 import {NotebookTreeComponent} from "./Notebooks";
 import useAxios from "axios-hooks";
 
-export const CommitItem = ({id, repositoryId, message, committerName, committedAt}) => (
+export const CommitItem = ({id, repositoryId, message, committer: {name}, committedAt}) => (
   <List.Item>
     <List.Content>
       <List.Header as='a'>
-        <Link to={`/repository/${repositoryId}/commit/${id}`}>{message}</Link>
+        <Link to={`/repository/${repositoryId}/commit/${id}`}>
+          {message && message.split('\n')[0]}
+        </Link>
       </List.Header>
       <List.Description as='a'>
-        {committerName} committed <Moment fromNow unix>{committedAt}</Moment>
+        <List.Icon name='github' size='small' verticalAlign='middle'/>
+        <b>{name}</b> committed <Moment fromNow unix>{committedAt}</Moment>
       </List.Description>
     </List.Content>
   </List.Item>
@@ -48,6 +65,74 @@ export const CommitListComponent = ({repositoryId}) => {
   </Message></Segment>
 
   return <Segment><CommitList repositoryId={repositoryId} commits={data}/></Segment>
+}
+
+
+const CommitInfoMessage = () => (
+  <Message compact>
+    <Message.Header>
+      <Icon name='info circle'/>
+      Changes
+    </Message.Header>
+    <Divider/>
+    <Message.Content>
+      <List size='mini' divided>
+        <List.Item>
+          <Label horizontal circular>10</Label>
+          new notebooks
+        </List.Item>
+        <List.Item>
+          <Label horizontal circular>3</Label>
+          modified notebooks
+        </List.Item>
+        <List.Item>
+          <Label horizontal circular>3</Label>
+          deleted notebooks
+        </List.Item>
+        <List.Item>
+          <Label horizontal circular>12</Label>
+          impacted dependencies
+        </List.Item>
+      </List>
+    </Message.Content>
+  </Message>
+)
+
+export const CommitDetail = ({repositoryId, commitId}) => {
+  return (
+    <Card fluid>
+      <Card.Content>
+        <Button compact floated='right' size='tiny'>
+          <Icon name='cogs'/>
+          Create execution
+        </Button>
+        <Card.Header>
+          Revert "Revert "Switch input/output order""
+        </Card.Header>
+        <Card.Description>
+          This reverts commit 5edcbe5.
+        </Card.Description>
+      </Card.Content>
+      <Card.Content>
+        <Card.Description>
+          Notebooks in this edb5e5c
+        </Card.Description>
+        <Grid>
+          <Grid.Column width={11}>
+            <NotebookTreeComponent repositoryId={repositoryId} commitId={commitId}/>
+          </Grid.Column>
+          <Grid.Column width={5}>
+            <CommitInfoMessage/>
+          </Grid.Column>
+        </Grid>
+      </Card.Content>
+      <Card.Content extra>
+        <Card.Meta>
+          <b>Ola Norman</b> committed <Moment fromNow unix>0</Moment> 5edcbe5
+        </Card.Meta>
+      </Card.Content>
+    </Card>
+  )
 }
 
 export const CommitDetailComponent = ({repositoryId, commitId}) => {
@@ -87,6 +172,8 @@ export const CommitDetailComponent = ({repositoryId, commitId}) => {
         </Button.Group>
 
         <Card.Header>
+          <List.Icon name='github' size='small' verticalAlign='middle'/>
+          <b>Name</b> committed <Moment fromNow unix>0</Moment>
           Commit title (first line) {commitId}
         </Card.Header>
       </Card.Content>

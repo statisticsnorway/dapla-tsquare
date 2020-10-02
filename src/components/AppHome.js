@@ -1,8 +1,8 @@
 import React from 'react'
 import {RepositoryListComponent} from "./RepoList";
-import {Breadcrumb, Container, Grid} from "semantic-ui-react";
+import {Breadcrumb, Container, Divider, Grid, Header, Icon} from "semantic-ui-react";
 import {Link, Route, Switch, useParams} from "react-router-dom";
-import {CommitDetailComponent, CommitListComponent, CommitListPlaceHolder} from "./Commit";
+import {CommitDetail, CommitDetailComponent, CommitListComponent, CommitListPlaceHolder} from "./Commit";
 
 
 // TODO: Move to own file.
@@ -44,7 +44,10 @@ const RepositoryView = () => {
 
 const CommitView = () => {
   let {repositoryId, commitId} = useParams();
-  return <CommitDetailComponent repositoryId={repositoryId} commitId={commitId}/>
+  return <>
+    <CommitDetailComponent repositoryId={repositoryId} commitId={commitId}/>
+    <CommitDetail repositoryId={repositoryId} commitId={commitId}/>
+  </>
 }
 
 
