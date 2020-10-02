@@ -11,7 +11,7 @@ import {
   List,
   Loader,
   Message,
-  Segment,
+  Segment, Step,
   Table
 } from "semantic-ui-react";
 import {Link} from "react-router-dom";
@@ -115,7 +115,7 @@ export const CommitDetail = ({repositoryId, commitId}) => {
       </Card.Content>
       <Card.Content>
         <Card.Description>
-          Notebooks in this edb5e5c
+          Notebooks in this commit edb5e5c
         </Card.Description>
         <Grid>
           <Grid.Column width={11}>
@@ -189,6 +189,57 @@ export const CommitDetailComponent = ({repositoryId, commitId}) => {
         {executeData && <CommitExecutionComponent executionId={executeData.id} jobs={executeData.jobs}/>}
       </Card.Content>
     </Card>
+  )
+}
+
+export const ExecutionComponent = () => {
+
+  const [step, setStep] = useState({num: 0, ready: false});
+
+  function next() {
+    setStep(prevState => ({num: prevState.num + 1, ready: false}))
+  }
+
+  function previous() {
+    setStep(prevState => ({num: prevState.num - 1, ready: false}))
+  }
+
+  return (
+    <>
+      <Step.Group attached='top'>
+        <Step active={step.num === 0} completed={step.num > 0}>
+          <Icon name='check square' />
+          <Step.Content>
+            <Step.Title>Select</Step.Title>
+            <Step.Description>Choose the notebooks to include</Step.Description>
+          </Step.Content>
+        </Step>
+
+        <Step active={step.num === 1} completed={step.num > 1}>
+          <Icon name='eye' />
+          <Step.Content>
+            <Step.Title>Review</Step.Title>
+            <Step.Description>Check the execution plan</Step.Description>
+          </Step.Content>
+        </Step>
+
+        <Step active={step.num === 2} completed={step.num > 2}>
+          <Icon name='play' />
+          <Step.Content>
+            <Step.Title>Run the execution</Step.Title>
+          </Step.Content>
+        </Step>
+      </Step.Group>
+      <Segment attached>
+        <h3>Select the notebooks that you want to include</h3>
+        <p>
+
+        </p>
+        <Button onClick={previous} primary >Previous</Button>
+        <Button onClick={next} primary floated='right' >Next</Button>
+      </Segment>
+
+    </>
   )
 }
 
