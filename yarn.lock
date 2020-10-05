@@ -9198,6 +9198,19 @@ react-scripts@3.4.3, react-scripts@^3.4.1:
   optionalDependencies:
     fsevents "2.1.2"
 
+react-svg-pan-zoom@^3.8.0:
+  version "3.8.0"
+  resolved "https://registry.yarnpkg.com/react-svg-pan-zoom/-/react-svg-pan-zoom-3.8.0.tgz#5724c71d257a07233c9cc511a5c6498d80bb397a"
+  integrity sha512-s92QDFJuRrp784aQZKX8qxukMY/85IpOXO5Bjbn1G/CoNapdHCRVAHynPP6Ea9cyMmycSmu6paPqUIAW3i5s9Q==
+  dependencies:
+    prop-types "^15.7.2"
+    transformation-matrix "^2.2.0"
+
+react-virtualized-auto-sizer@^1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/react-virtualized-auto-sizer/-/react-virtualized-auto-sizer-1.0.2.tgz#a61dd4f756458bbf63bd895a92379f9b70f803bd"
+  integrity sha512-MYXhTY1BZpdJFjUovvYHVBmkq79szK/k7V3MO+36gJkWGkrXKtyr4vCPtpphaTLRAdDNoYEYFZWE8LjN+PIHNg==
+
 react@^16.13.1:
   version "16.13.1"
   resolved "https://registry.yarnpkg.com/react/-/react-16.13.1.tgz#2e818822f1a9743122c063d6410d85c1e3afe48e"
@@ -10655,6 +10668,11 @@ tr46@^1.0.1:
   integrity sha1-qLE/1r/SSJUZZ0zN5VujaTtwbQk=
   dependencies:
     punycode "^2.1.0"
+
+transformation-matrix@^2.2.0:
+  version "2.4.0"
+  resolved "https://registry.yarnpkg.com/transformation-matrix/-/transformation-matrix-2.4.0.tgz#9a63865c6f939c4abc4924d260242611101a5ee2"
+  integrity sha512-cZyijcvmC+ms5M5dw5IzU7A27lKLR7SrRKtopdMK4KZ+cfTzOOKS2iT3vqFPOiKMM9cb81MyAQMxF/cihTbThA==
 
 ts-pnp@1.1.6, ts-pnp@^1.1.6:
   version "1.1.6"
