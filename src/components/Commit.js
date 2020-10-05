@@ -11,14 +11,14 @@ import {
   List,
   Loader,
   Message,
-  Segment, Step,
+  Segment,
   Table
 } from "semantic-ui-react";
 import {Link} from "react-router-dom";
 import Moment from "react-moment";
 import env from "@beam-australia/react-env";
-import {NotebookTreeComponent} from "./Notebooks";
 import useAxios from "axios-hooks";
+import {NotebookTreeComponent} from "./Notebooks";
 
 export const CommitItem = ({id, repositoryId, message, committer: {name}, committedAt}) => (
   <List.Item>
@@ -68,7 +68,7 @@ export const CommitListComponent = ({repositoryId}) => {
 }
 
 
-const CommitInfoMessage = () => (
+const CommitInfoMessage = ({updated, deleted, created}) => (
   <Message compact>
     <Message.Header>
       <Icon name='info circle'/>
@@ -77,68 +77,54 @@ const CommitInfoMessage = () => (
     <Divider/>
     <Message.Content>
       <List size='mini' divided>
-        <List.Item>
-          <Label horizontal circular>10</Label>
-          new notebooks
-        </List.Item>
-        <List.Item>
-          <Label horizontal circular>3</Label>
-          modified notebooks
-        </List.Item>
-        <List.Item>
-          <Label horizontal circular>3</Label>
-          deleted notebooks
-        </List.Item>
-        <List.Item>
-          <Label horizontal circular>12</Label>
-          impacted dependencies
-        </List.Item>
+        {created && (
+          <List.Item>
+            <Label horizontal circular>{created.length}</Label>
+            new notebooks
+          </List.Item>
+        )}
+
+        {updated && (
+          <List.Item>
+            <Label horizontal circular>{updated.length}</Label>
+            modified notebooks
+          </List.Item>
+        )}
+
+        {deleted && (
+          <List.Item>
+            <Label horizontal circular>{deleted.length}</Label>
+            deleted notebooks
+          </List.Item>
+        )}
+
+        {(deleted && updated && created) || (
+          <List.Item>
+            no changes in this commits
+          </List.Item>
+        )}
+
+        {/*<List.Item>*/}
+        {/*  <Label horizontal circular>12</Label>*/}
+        {/*  impacted dependencies*/}
+        {/*</List.Item>*/}
+
       </List>
     </Message.Content>
   </Message>
 )
 
-export const CommitDetail = ({repositoryId, commitId}) => {
-  return (
-    <Card fluid>
-      <Card.Content>
-        <Button compact floated='right' size='tiny'>
-          <Icon name='cogs'/>
-          Create execution
-        </Button>
-        <Card.Header>
-          Revert "Revert "Switch input/output order""
-        </Card.Header>
-        <Card.Description>
-          This reverts commit 5edcbe5.
-        </Card.Description>
-      </Card.Content>
-      <Card.Content>
-        <Card.Description>
-          Notebooks in this commit edb5e5c
-        </Card.Description>
-        <Grid>
-          <Grid.Column width={11}>
-            <NotebookTreeComponent repositoryId={repositoryId} commitId={commitId}/>
-          </Grid.Column>
-          <Grid.Column width={5}>
-            <CommitInfoMessage/>
-          </Grid.Column>
-        </Grid>
-      </Card.Content>
-      <Card.Content extra>
-        <Card.Meta>
-          <b>Ola Norman</b> committed <Moment fromNow unix>0</Moment> 5edcbe5
-        </Card.Meta>
-      </Card.Content>
-    </Card>
-  )
-}
+const CommitDetailPlaceholder = () => (
+  <div>Loading</div>
+)
 
-export const CommitDetailComponent = ({repositoryId, commitId}) => {
+const CommitDetailError = ({error}) => (
+  <div>Loading</div>
+)
 
-  const [selected, setSelected] = useState([]);
-  const [{data: executeData, loading: executeLoading, error: executeError}, execute] = useAxios({
+export const CommitDetail = ({title, body, created, updated, deleted, committedAt, id, committer, children, repositoryId, commitId}) => {
+
+  const [{data, loading, error}, execute] = useAxios({
       url: `${env('EXECUTION_HOST')}/api/v1/execute`,
       method: 'POST'
     },
@@ -148,12 +134,10 @@ export const CommitDetailComponent = ({repositoryId, commitId}) => {
   );
 
   function executeNotebooks() {
-    console.log("executing")
     execute({
       data: {
         repositoryId,
-        commitId,
-        notebookIds: selected
+        commitId
       }
     })
   }
@@ -161,85 +145,59 @@ export const CommitDetailComponent = ({repositoryId, commitId}) => {
   return (
     <Card fluid>
       <Card.Content>
-
-        <Button.Group icon floated='right' size='tiny'>
-          <Button disabled={executeData} onClick={executeNotebooks}>
-            <Icon name='play'/>
-          </Button>
-          <Button disabled={!executeData}>
-            <Icon name='cancel'/>
-          </Button>
-        </Button.Group>
-
+        <Button compact floated='right' size='tiny' onClick={executeNotebooks}>
+          <Icon name='cogs' loading={loading}/>
+          Create execution
+        </Button>
         <Card.Header>
-          <List.Icon name='github' size='small' verticalAlign='middle'/>
-          <b>Name</b> committed <Moment fromNow unix>0</Moment>
-          Commit title (first line) {commitId}
+          {title}
         </Card.Header>
+        <Card.Description>
+          {body}
+        </Card.Description>
       </Card.Content>
       <Card.Content>
-        <Grid columns={2} relaxed='very'>
-          <Grid.Column>Some description of the commit</Grid.Column>
-          <Grid.Column width={6}>
-            <NotebookTreeComponent onSelect={setSelected} repositoryId={repositoryId} commitId={commitId}/>
+        <Card.Description>
+          Notebooks in this commit
+        </Card.Description>
+        <Grid>
+          <Grid.Column width={11}>
+            {children}
+          </Grid.Column>
+          <Grid.Column width={5}>
+            <CommitInfoMessage created={created} deleted={deleted} updated={updated}/>
           </Grid.Column>
         </Grid>
       </Card.Content>
-      <Card.Content>
-        {executeData && <CommitExecutionComponent executionId={executeData.id} jobs={executeData.jobs}/>}
+      <Card.Content extra>
+        <Card.Meta>
+          <b>{committer && committer.name}</b> committed <Moment fromNow unix>{committedAt}</Moment> {id && id.substring(0, 7)}
+        </Card.Meta>
       </Card.Content>
     </Card>
   )
 }
 
-export const ExecutionComponent = () => {
+export const CommitDetailComponent = ({repositoryId, commitId}) => {
+  const [{data, loading, error}] = useAxios(
+    `${env('BLUEPRINT_HOST')}/api/v1/repositories/${repositoryId}/commits/${commitId}`
+  )
 
-  const [step, setStep] = useState({num: 0, ready: false});
+  if (loading || !data) return <CommitDetailPlaceholder/>
+  if (error) return <CommitDetailError error={error}/>
 
-  function next() {
-    setStep(prevState => ({num: prevState.num + 1, ready: false}))
-  }
+  const {
+    message, committedAt, committer, id,
+    updated, deleted, created
+  } = data;
 
-  function previous() {
-    setStep(prevState => ({num: prevState.num - 1, ready: false}))
-  }
+  const [firstLine, ...otherLines] = message.split('\n')
 
-  return (
-    <>
-      <Step.Group attached='top'>
-        <Step active={step.num === 0} completed={step.num > 0}>
-          <Icon name='check square' />
-          <Step.Content>
-            <Step.Title>Select</Step.Title>
-            <Step.Description>Choose the notebooks to include</Step.Description>
-          </Step.Content>
-        </Step>
-
-        <Step active={step.num === 1} completed={step.num > 1}>
-          <Icon name='eye' />
-          <Step.Content>
-            <Step.Title>Review</Step.Title>
-            <Step.Description>Check the execution plan</Step.Description>
-          </Step.Content>
-        </Step>
-
-        <Step active={step.num === 2} completed={step.num > 2}>
-          <Icon name='play' />
-          <Step.Content>
-            <Step.Title>Run the execution</Step.Title>
-          </Step.Content>
-        </Step>
-      </Step.Group>
-      <Segment attached>
-        <h3>Select the notebooks that you want to include</h3>
-        <p>
-
-        </p>
-        <Button onClick={previous} primary >Previous</Button>
-        <Button onClick={next} primary floated='right' >Next</Button>
-      </Segment>
-
-    </>
+  return (<CommitDetail id={commitId} title={firstLine} body={otherLines.join('\n')}
+                        updated={updated} deleted={deleted} created={created}
+                        committer={committer} committedAt={committedAt} repositoryId={repositoryId} commitId={commitId}>
+      <NotebookTreeComponent repositoryId={repositoryId} commitId={commitId}/>
+    </CommitDetail>
   )
 }
 
