@@ -16,7 +16,7 @@ export const ExecutionList = ({executions}) => (
   </List>
 )
 
-const ExecutionIcon = ({status}) => {
+export const ExecutionIcon = ({status}) => {
   switch (status) {
     case "Running":
       return <List.Icon name='sync alternate' loading/>

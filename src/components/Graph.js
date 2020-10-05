@@ -6,6 +6,7 @@ import {Grid, Label, List, Segment} from "semantic-ui-react";
 import Moment from "react-moment";
 import {UncontrolledReactSVGPanZoom} from "react-svg-pan-zoom";
 import AutoSizer from 'react-virtualized-auto-sizer'
+import {ExecutionIcon} from "./Executions";
 
 const hash = new ColorHash({lightness: [0.35, 0.5, 0.65]})
 
@@ -84,6 +85,20 @@ const hexToLuma = (colour) => {
   ].reduce((a, b) => a + b) / 255;
 };
 
+function getTerm(status) {
+  switch (status) {
+    case "Running":
+      return "started"
+    case "Ready":
+      return "created"
+    case "Failed":
+      return "failed"
+    case "Done":
+      return "done"
+    case "Cancelled":
+      return "cancelled"
+  }
+}
 
 const JobListItem = ({id, status, startedAt, endedAt, path}) => (
   <List.Item>
@@ -98,8 +113,17 @@ const JobListItem = ({id, status, startedAt, endedAt, path}) => (
         {path}
       </List.Header>
       <List.Description>
-        <List.Icon name='sync alternate' loading/>
-        started <Moment unix fromNow>{startedAt}</Moment>
+        <ExecutionIcon status={status}/>
+        {status !== "Ready" && (
+          <>
+            {getTerm(status)} <Moment unix fromNow>{startedAt}</Moment>
+          </>
+        )}
+        {status === "Ready" && (
+          <>
+            waiting for parents
+          </>
+        )}
       </List.Description>
     </List.Content>
   </List.Item>
@@ -244,7 +268,7 @@ class D3Dag extends React.Component {
     nodes.append('text')
       .attr('x', nodeHeight / 2)
       .attr('y', nodeWidth / 2)
-      .text(n => n.data.notebook.id.substring(0,7))
+      .text(n => n.data.notebook.id.substring(0, 7))
       .attr('fill', n => hexToLuma(hash.hex(n.data.notebook.id)) > 0.5 ? "black" : "white")
       .attr('font-weight', 'bold')
       .attr('font-family', 'sans-serif')
