@@ -11,6 +11,7 @@ import {
   List,
   Loader,
   Message,
+  Modal, Popup,
   Segment,
   Table
 } from "semantic-ui-react";
@@ -78,27 +79,39 @@ const CommitInfoMessage = ({updated, deleted, created}) => (
     <Message.Content>
       <List size='mini' divided>
         {created && (
-          <List.Item>
-            <Label horizontal circular>{created.length}</Label>
-            new notebooks
-          </List.Item>
+          <CommitChangesPopup
+            trigger={<List.Item>
+              <Label horizontal circular>{created.length}</Label>
+              new notebooks
+            </List.Item>}
+            notebooks={created}
+          />
+
         )}
 
         {updated && (
-          <List.Item>
-            <Label horizontal circular>{updated.length}</Label>
-            modified notebooks
-          </List.Item>
+          <CommitChangesPopup
+            trigger={<List.Item>
+              <Label horizontal circular>{updated.length}</Label>
+              modified notebooks
+            </List.Item>}
+            notebooks={updated}
+          />
+
         )}
 
         {deleted && (
-          <List.Item>
-            <Label horizontal circular>{deleted.length}</Label>
-            deleted notebooks
-          </List.Item>
+          <CommitChangesPopup
+            trigger={<List.Item>
+              <Label horizontal circular>{deleted.length}</Label>
+              deleted notebooks
+            </List.Item>}
+            notebooks={deleted}
+          />
+
         )}
 
-        {(deleted && updated && created) || (
+        {(deleted || updated || created) || (
           <List.Item>
             no changes in this commits
           </List.Item>
@@ -237,4 +250,17 @@ export const CommitExecutionComponent = ({executionId, jobs = []}) => {
       </Table.Body>
     </Table>
   )
+}
+
+export const CommitChangesPopup = (props) => {
+  if (props.notebooks.length > 0) {
+    return (
+      <Popup
+        trigger={props.trigger}
+        content={props.notebooks.length > 0 && props.notebooks.map(notebook => <p key={notebook.id}>{notebook.path}</p>)}
+      />
+    )
+  } else {
+    return props.trigger
+  }
 }
