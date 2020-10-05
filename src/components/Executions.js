@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react'
-import {Button, Card, Grid, Icon, List, Segment, Step} from "semantic-ui-react";
+import {Placeholder, Button, Card, Grid, Icon, List, Segment, Step} from "semantic-ui-react";
 import useAxios from "axios-hooks";
 import env from "@beam-australia/react-env";
 import Moment from "react-moment";
@@ -87,7 +87,34 @@ export const ExecutionListComponent = ({interval = 5000}) => {
 
 export const ExecutionComponent = ({executionId}) => {
 
+  const [selected, setSelected] = useState([]);
   const [step, setStep] = useState({num: 0, ready: false});
+
+  const [{data, loading, error}] = useAxios(`${env('EXECUTION_HOST')}/api/v1/execution/${executionId}`);
+  const [{data: updateData, loading: updateLoading, error: updateError}, update] = useAxios({
+      url: `${env('EXECUTION_HOST')}/api/v1/execution/${executionId}`,
+      method: 'PUT'
+    },
+    {
+      manual: true
+    }
+  );
+
+  function updateExecution(ids) {
+    setSelected(ids)
+    update({
+      data: {
+        repositoryId: data.repositoryId,
+        commitId: data.commitId,
+        notebookIds: selected
+      }
+    })
+  }
+
+  if (loading) return <Placeholder></Placeholder>
+
+  console.log(selected)
+  console.log(updateData)
 
   function next() {
     setStep(prevState => ({num: prevState.num + 1, ready: false}))
@@ -124,10 +151,15 @@ export const ExecutionComponent = ({executionId}) => {
         </Step>
       </Step.Group>
       <Segment attached>
-        <h3>Select the notebooks that you want to include</h3>
-        <p>
+        <Grid>
+          <Grid.Column width={4}>
+            <NotebookTreeComponent onSelect={updateExecution} repositoryId={data.repositoryId} commitId={data.commitId}/>
+          </Grid.Column>
+          <Grid.Column width={12}>
+            <CommitExecutionComponent executionId={executionId} jobs={(updateData || data).jobs}/>
+          </Grid.Column>
+        </Grid>
 
-        </p>
         <Button onClick={previous} primary>Previous</Button>
         <Button onClick={next} primary floated='right'>Next</Button>
       </Segment>

@@ -227,7 +227,9 @@ export const CommitExecutionComponent = ({executionId, jobs = []}) => {
         {jobs.map(job => (
           <Table.Row key={job.id}>
             <Table.Cell>{job.notebook.path}</Table.Cell>
-            <Table.Cell><Moment ago>{job.started}</Moment></Table.Cell>
+            <Table.Cell>
+              <Moment unix fromNow>{job.startedAt}</Moment>
+            </Table.Cell>
             <Table.Cell>September 14, 2013</Table.Cell>
             <Table.Cell>{job.status}</Table.Cell>
           </Table.Row>

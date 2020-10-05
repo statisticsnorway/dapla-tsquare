@@ -41,7 +41,7 @@ const CustomBreadCrumb = () => {
       </Breadcrumb.Section>
     </Route>
 
-    <Route path="/executions">
+    <Route path="/execution" divider>
       <Breadcrumb.Section>
         Executions
       </Breadcrumb.Section>
@@ -62,7 +62,6 @@ const CommitView = () => {
   let {repositoryId, commitId} = useParams();
   return <>
     <CommitDetailComponent repositoryId={repositoryId} commitId={commitId}/>
-    <ExecutionComponent/>
   </>
 }
 
