@@ -4,6 +4,7 @@ import {Breadcrumb, Container, Divider, Grid, Header, Icon} from "semantic-ui-re
 import {Link, Route, Switch, useParams} from "react-router-dom";
 import {CommitDetailComponent, CommitListComponent, CommitListPlaceHolder} from "./Commit";
 import {ExecutionComponent, ExecutionListComponent} from "./Executions";
+import {DirectedAcyclicGraph} from "./Graph";
 
 
 // TODO: Move to own file.
@@ -72,6 +73,13 @@ const ExecutionView = () => {
   </>
 }
 
+const DagView = () => {
+  const {executionId} = useParams();
+  return <>
+    <DirectedAcyclicGraph executionId={executionId}/>
+  </>
+}
+
 
 function AppHome() {
   return (
@@ -92,6 +100,11 @@ function AppHome() {
                 <Route path="/repository/:repositoryId/commit/:commitId">
                   <CommitView/>
                 </Route>
+
+                <Route path="/test">
+                  <DagView/>
+                </Route>
+
                 <Route path="/repository/:repositoryId">
                   <RepositoryView/>
                 </Route>
