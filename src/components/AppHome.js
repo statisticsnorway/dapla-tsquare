@@ -93,7 +93,24 @@ function AppHome() {
 
           <Grid.Row>
             <Grid.Column width={4}>
+
+              <Divider horizontal>
+                <Header as='h5'>
+                  <Icon name='code branch'/>
+                  Repositories
+                </Header>
+              </Divider>
               <RepositoryListComponent/>
+
+              <Divider horizontal>
+                <Header as='h5'>
+                  <Icon name='cogs'/>
+                  Executions
+                </Header>
+              </Divider>
+
+              <ExecutionListComponent/>
+
             </Grid.Column>
             <Grid.Column width={12}>
               <Switch>
