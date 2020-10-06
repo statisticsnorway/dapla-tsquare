@@ -7,6 +7,8 @@ import Moment from "react-moment";
 import {UncontrolledReactSVGPanZoom} from "react-svg-pan-zoom";
 import AutoSizer from 'react-virtualized-auto-sizer'
 import {ExecutionIcon} from "./Executions";
+import { LazyLog } from "react-lazylog"
+import { Link } from 'react-router-dom'
 
 const hash = new ColorHash({lightness: [0.35, 0.5, 0.65]})
 
@@ -100,8 +102,8 @@ function getTerm(status) {
   }
 }
 
-const JobListItem = ({id, status, startedAt, endedAt, path}) => (
-  <List.Item>
+const JobListItem = ({id, jobId, status, startedAt, endedAt, path}) => (
+  <List.Item as={Link} onClick={() => setSelectedJob(jobId)}>
     <List.Content>
       <List.Header>
         <Label style={{
@@ -129,11 +131,19 @@ const JobListItem = ({id, status, startedAt, endedAt, path}) => (
   </List.Item>
 )
 
+let selectedExecutionId;
+let selectedJobId;
+
+function setSelectedJob(jobId) {
+  selectedJobId = jobId;
+}
+
 export const JobList = ({jobs}) => (
   <List divided relaxed>
     {jobs.map(job => (
       <JobListItem
         key={job.id}
+        jobId={job.id}
         id={job.notebook.id}
         path={job.notebook.path}
         status={job.status}
@@ -144,7 +154,7 @@ export const JobList = ({jobs}) => (
   </List>
 )
 
-export const DirectedAcyclicGraph = ({jobs = []}) => {
+export const DirectedAcyclicGraph = ({jobs = [], executionId}) => {
   return (
     <Grid columns={2} stackable divided>
       <Grid.Column width={5}>
@@ -157,6 +167,12 @@ export const DirectedAcyclicGraph = ({jobs = []}) => {
           )}
         </AutoSizer>
       </Grid.Column>
+      <Grid.Row>
+        { selectedJobId &&
+          <LazyLog stream
+                   url={`http://localhost:10180/api/v1/execution/${executionId}/job/${selectedJobId}/log`}/>
+        } /*TODO This does not work*/
+      </Grid.Row>
     </Grid>
   );
 }
