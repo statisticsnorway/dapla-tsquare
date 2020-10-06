@@ -132,7 +132,7 @@ export const ExecutionComponent = ({executionId}) => {
   return (
     <>
       <Segment>
-        <Grid>
+        <Grid divided>
           <Grid.Column width={4}>
             {(loading
                 ? <Placeholder/>
@@ -141,13 +141,15 @@ export const ExecutionComponent = ({executionId}) => {
             )}
           </Grid.Column>
           <Grid.Column width={12}>
-            {content}
-          </Grid.Column>
-          <Grid.Row>
+            {/*{content}*/}
             {(loading
                 ? <Placeholder/>
                 : <DirectedAcyclicGraph jobs={(updateData || data).jobs}/>
             )}
+          </Grid.Column>
+          <Grid.Row>
+            <LazyLog stream
+                     url="http://localhost:10180/api/v1/execution/340072cf-328f-4bc7-b9cf-4670e1d887be/job/340072cf-328f-4bc7-b9cf-4670e1d887be/log"/>
           </Grid.Row>
         </Grid>
       </Segment>

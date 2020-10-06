@@ -85,8 +85,8 @@ const DagView = () => {
 function AppHome() {
   return (
     <div>
-      <Container>
-        <Grid columns={2}>
+      <Container style={{width: "90%"}}>
+        <Grid columns={2} >
 
           <Grid.Row>
             <CustomBreadCrumb/>
