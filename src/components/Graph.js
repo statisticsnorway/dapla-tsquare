@@ -106,7 +106,7 @@ const JobListItem = ({id, status, startedAt, endedAt, path}) => (
       <List.Header>
         <Label style={{
           background: hash.hex(id),
-          color: hexToLuma(hash.hex(id)) > 0.5 ? "black" : "white",
+          color: hexToLuma(hash.hex(id)) > 0.5 ? "#222" : "#f1f1f1",
         }} horizontal>
           {id.substring(0, 7)}
         </Label>
@@ -158,31 +158,6 @@ export const DirectedAcyclicGraph = ({nodes}) => {
     </Segment>)
 }
 
-const layerings = {
-  "Simplex (slow)": d3dag.layeringSimplex(),
-  "Longest Path (fast)": d3dag.layeringLongestPath(),
-  "Coffman Graham (medium)": d3dag.layeringCoffmanGraham(),
-}
-
-const decrossings = {
-  "Optimal (slow)": d3dag.decrossOpt(),
-  "Two Layer Opt (medium)": d3dag.decrossTwoLayer().order(d3dag.twolayerOpt()),
-  "Two Layer Median (flast)": d3dag.decrossTwoLayer().order(d3dag.twolayerMedian()),
-  "Two Layer Mean (flast)": d3dag.decrossTwoLayer(),
-}
-
-const seps = {
-  "Constant Separation": () => 1,
-  "Edge Aware Separation": (left, right) => +!(left instanceof d3dag.SugiDummyNode) + +!(right instanceof d3dag.SugiDummyNode),
-}
-
-const coords = {
-  "Vertical (slow)": d3dag.coordVert(),
-  "Minimum Curves (slow)": d3dag.coordMinCurve(),
-  "Greedy (medium)": d3dag.coordGreedy(),
-  "Center (fast)": d3dag.coordCenter(),
-};
-
 class D3Dag extends React.Component {
 
   constructor(props) {
@@ -203,23 +178,24 @@ class D3Dag extends React.Component {
   componentDidMount() {
 
     const dag = this.computeDAG();
-
     const svgSelection = d3.select(this.Viewer.Viewer.ViewerDOM).selectAll('g');
-
     const defs = svgSelection.append('defs');
 
+    const nodeWidth = 68;
+    const nodeHeight = 26;
+
     d3dag.sugiyama()
-      .size([this.props.width, this.props.height])
-      .layering(layerings["Coffman Graham (medium)"])
-      .decross(decrossings["Two Layer Mean (flast)"])
-      .coord(coords["Center (fast)"])
-      .separation(seps["Constant Separation"])(dag)
+      .size([dag.size() * nodeHeight, dag.size() * nodeWidth])
+      .layering(d3dag.layeringCoffmanGraham())
+      .decross(d3dag.decrossTwoLayer().order(d3dag.twolayerMedian()))
+      .coord(d3dag.coordCenter())
+      .separation(() => 1)(dag)
 
     // How to draw edges
     const line = d3.line()
       .curve(d3.curveCatmullRom)
-      .x(d => d.x)
-      .y(d => d.y);
+      .x(d => d.y)
+      .y(d => d.x);
 
     // Plot edges
     svgSelection.append('g')
@@ -231,22 +207,19 @@ class D3Dag extends React.Component {
       .attr('fill', 'none')
       .attr('stroke-width', 3)
       .attr('stroke', ({source, target}) => {
-        console.log(source)
         const gradId = `${source.id}-${target.id}`;
         const grad = defs.append('linearGradient')
           .attr('id', gradId)
           .attr('gradientUnits', 'userSpaceOnUse')
-          .attr('x1', source.x)
-          .attr('x2', target.x)
-          .attr('y1', source.y)
-          .attr('y2', target.y);
+          // Invert x/y for top down
+          .attr('x1', source.y)
+          .attr('x2', target.y)
+          .attr('y1', source.x)
+          .attr('y2', target.x);
         grad.append('stop').attr('offset', '0%').attr('stop-color', hash.hex(source.data.notebook.id));
         grad.append('stop').attr('offset', '100%').attr('stop-color', hash.hex(target.data.notebook.id));
         return `url(#${gradId})`;
       });
-
-    const nodeHeight = 68;
-    const nodeWidth = 26;
 
     // Select nodes
     const nodes = svgSelection.append('g')
@@ -254,22 +227,22 @@ class D3Dag extends React.Component {
       .data(dag.descendants())
       .enter()
       .append('g')
-      .attr('transform', ({x, y}) => `translate(${x - nodeHeight / 2}, ${y - nodeWidth / 2})`);
+      .attr('transform', ({x, y}) => `translate(${y - nodeWidth / 2}, ${x - nodeHeight / 2})`);
 
     // Plot nodes
     nodes.append('rect')
-      .attr('width', nodeHeight)
-      .attr('height', nodeWidth)
+      .attr('width', nodeWidth)
+      .attr('height', nodeHeight)
       .attr('rx', 5)
       .attr('ry', 5)
       .attr('fill', n => hash.hex(n.data.notebook.id));
 
     // Add text to nodes
     nodes.append('text')
-      .attr('x', nodeHeight / 2)
-      .attr('y', nodeWidth / 2)
+      .attr('x', nodeWidth / 2)
+      .attr('y', nodeHeight / 2 + 1)
       .text(n => n.data.notebook.id.substring(0, 7))
-      .attr('fill', n => hexToLuma(hash.hex(n.data.notebook.id)) > 0.5 ? "black" : "white")
+      .attr('fill', n => hexToLuma(hash.hex(n.data.notebook.id)) > 0.5 ? "#222" : "#eee")
       .attr('font-weight', 'bold')
       .attr('font-family', 'sans-serif')
       .attr('text-anchor', 'middle')
@@ -287,7 +260,7 @@ class D3Dag extends React.Component {
         tool="auto"
         miniaturePosition="none"
       >
-        <svg width={1440} height={1440}/>
+        <svg width={800} height={400}/>
       </UncontrolledReactSVGPanZoom>
 
     );
