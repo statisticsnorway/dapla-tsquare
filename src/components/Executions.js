@@ -1,11 +1,13 @@
 import React, {useEffect, useState} from 'react'
-import {Placeholder, Button, Card, Grid, Icon, List, Segment, Step} from "semantic-ui-react";
+import {Button, Card, Grid, Icon, List, Placeholder, Segment, Step} from "semantic-ui-react";
 import useAxios from "axios-hooks";
 import env from "@beam-australia/react-env";
 import Moment from "react-moment";
 import {NotebookTreeComponent} from "./Notebooks";
 import {CommitExecutionComponent} from "./Commit";
 import {Link} from "react-router-dom";
+import {LazyLog} from "react-lazylog";
+import {DirectedAcyclicGraph} from "./Graph";
 
 export const ExecutionList = ({executions}) => (
   <List divided relaxed>
@@ -153,7 +155,8 @@ export const ExecutionComponent = ({executionId}) => {
       <Segment attached>
         <Grid>
           <Grid.Column width={4}>
-            <NotebookTreeComponent onSelect={updateExecution} repositoryId={data.repositoryId} commitId={data.commitId}/>
+            <NotebookTreeComponent onSelect={updateExecution} repositoryId={data.repositoryId}
+                                   commitId={data.commitId}/>
           </Grid.Column>
           <Grid.Column width={12}>
             <CommitExecutionComponent executionId={executionId} jobs={(updateData || data).jobs}/>
@@ -168,59 +171,34 @@ export const ExecutionComponent = ({executionId}) => {
   )
 }
 
-const CommitDetailComponent = ({repositoryId, commitId}) => {
+const ExecutionButtonGroup = ({...rest}) => {
+  return (
+    <Button.Group labeled icon {...rest}>
+      <Button icon='play' content='start'/>
+      <Button icon='cancel' content='cancel'/>
+    </Button.Group>
+  )
+}
 
-  const [selected, setSelected] = useState([]);
-  const [{data: executeData, loading: executeLoading, error: executeError}, execute] = useAxios({
-      url: `${env('EXECUTION_HOST')}/api/v1/execute`,
-      method: 'POST'
-    },
-    {
-      manual: true
-    }
-  );
-
-  function executeNotebooks() {
-    console.log("executing")
-    execute({
-      data: {
-        repositoryId,
-        commitId,
-        notebookIds: selected
-      }
-    })
-  }
-
+export const ExecutionComponent2 = () => {
   return (
     <Card fluid>
       <Card.Content>
-
-        <Button.Group icon floated='right' size='tiny'>
-          <Button disabled={executeData} onClick={executeNotebooks}>
-            <Icon name='play'/>
-          </Button>
-          <Button disabled={!executeData}>
-            <Icon name='cancel'/>
-          </Button>
-        </Button.Group>
-
         <Card.Header>
-          <List.Icon name='github' size='small' verticalAlign='middle'/>
-          <b>Name</b> committed <Moment fromNow unix>0</Moment>
-          Commit title (first line) {commitId}
+          <ExecutionButtonGroup compact floated='right'/>
+          Header
         </Card.Header>
+        <Card.Description>
+          Content
+        </Card.Description>
       </Card.Content>
-      <Card.Content>
-        <Grid columns={2} relaxed='very'>
-          <Grid.Column>Some description of the commit</Grid.Column>
-          <Grid.Column width={6}>
-            <NotebookTreeComponent onSelect={setSelected} repositoryId={repositoryId} commitId={commitId}/>
-          </Grid.Column>
-        </Grid>
+      <Card.Content >
+        <DirectedAcyclicGraph />
       </Card.Content>
-      <Card.Content>
-        {executeData && <CommitExecutionComponent executionId={executeData.id} jobs={executeData.jobs}/>}
+      <Card.Content style={{height:400, padding: 0}}>
+        <LazyLog stream
+                 url="http://localhost:10180/api/v1/execution/340072cf-328f-4bc7-b9cf-4670e1d887be/job/340072cf-328f-4bc7-b9cf-4670e1d887be/log"/>
       </Card.Content>
     </Card>
-  )
+  );
 }

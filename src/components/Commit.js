@@ -216,7 +216,7 @@ export const CommitDetailComponent = ({repositoryId, commitId}) => {
 
 export const CommitExecutionComponent = ({executionId, jobs = []}) => {
 
-  const [{data, loading, error}, refresh] = useAxios(
+  const [{data}, refresh] = useAxios(
     `${env('EXECUTION_HOST')}/api/v1/execution/${executionId}`,
     {manual: true}
   );

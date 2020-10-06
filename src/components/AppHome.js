@@ -3,8 +3,9 @@ import {RepositoryListComponent} from "./RepoList";
 import {Breadcrumb, Container, Divider, Grid, Header, Icon} from "semantic-ui-react";
 import {Link, Route, Switch, useParams} from "react-router-dom";
 import {CommitDetailComponent, CommitListComponent, CommitListPlaceHolder} from "./Commit";
-import {ExecutionComponent, ExecutionListComponent} from "./Executions";
+import {ExecutionComponent, ExecutionComponent2, ExecutionListComponent} from "./Executions";
 import {DirectedAcyclicGraph} from "./Graph";
+import {LazyLog} from "react-lazylog";
 
 
 // TODO: Move to own file.
@@ -76,7 +77,7 @@ const ExecutionView = () => {
 const DagView = () => {
   const {executionId} = useParams();
   return <>
-    <DirectedAcyclicGraph executionId={executionId}/>
+    <ExecutionComponent2/>
   </>
 }
 

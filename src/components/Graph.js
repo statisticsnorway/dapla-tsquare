@@ -131,7 +131,6 @@ const JobListItem = ({id, status, startedAt, endedAt, path}) => (
 
 export const DirectedAcyclicGraph = ({nodes}) => {
   return (
-    <Segment>
       <Grid columns={2} stackable divided>
         <Grid.Column width={5}>
           <List divided relaxed>
@@ -155,7 +154,7 @@ export const DirectedAcyclicGraph = ({nodes}) => {
           </AutoSizer>
         </Grid.Column>
       </Grid>
-    </Segment>)
+  );
 }
 
 class D3Dag extends React.Component {

@@ -8,6 +8,7 @@ import useAxios from "axios-hooks";
 
 // TODO: Refactor
 const makeHierarchy = (notebooks, created, updated) => {
+
   const containsChanges = (created, updated, leaf) => {
     return !!(created.filter(n => n.id === leaf.id).length > 0 || updated.filter(n => n.id === leaf.id).length > 0);
 
@@ -69,7 +70,7 @@ const icons = {
   leaf: <Icon fitted name="file code outline"/>
 }
 
-export const NotebookTree = ({notebooks = [], onSelect = () => {}, created, updated}) => {
+export const NotebookTree = ({notebooks = [], onSelect = () => {}, created = [], updated = []}) => {
   const [checked, setChecked] = useState([]);
   const [expanded, setExpanded] = useState([]);
 
