@@ -19,6 +19,7 @@ import Moment from "react-moment";
 import env from "@beam-australia/react-env";
 import useAxios from "axios-hooks";
 import { NotebookTreeComponent } from "./Notebooks";
+import { useHistory } from "react-router-dom"
 
 export const CommitItem = ({id, repositoryId, message, committer: {name}, committedAt}) => (
   <List.Item>
@@ -135,6 +136,7 @@ const CommitDetailError = ({error}) => (
 )
 
 export const CommitDetail = ({title, body, created, updated, deleted, committedAt, id, committer, children, repositoryId, commitId}) => {
+  let history = useHistory();
 
   const [{data, loading, error}, execute] = useAxios({
       url: `${env('EXECUTION_HOST')}/api/v1/execute`,
@@ -151,6 +153,8 @@ export const CommitDetail = ({title, body, created, updated, deleted, committedA
         repositoryId,
         commitId
       }
+    }).then((response) => {
+      history.push(`/execution/${response.data.id}`)
     })
   }
 

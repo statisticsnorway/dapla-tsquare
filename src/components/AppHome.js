@@ -127,7 +127,8 @@ function AppHome() {
                   <RepositoryView/>
                 </Route>
                 <Route path="/execution/:executionId">
-                  <ExecutionView/>
+                  {/*<ExecutionView/>*/}
+                  <DagView/>
                 </Route>
                 <Route>
                   <CommitListPlaceHolder/>
