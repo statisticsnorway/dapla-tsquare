@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react'
-import {Button, Card, Grid, Icon, List, Placeholder, Segment, Step} from "semantic-ui-react";
+import {Button, Card, Grid, List, Placeholder, Segment} from "semantic-ui-react";
 import useAxios from "axios-hooks";
 import env from "@beam-australia/react-env";
 import Moment from "react-moment";
@@ -94,7 +94,6 @@ export const ExecutionListComponent = ({interval = 5000}) => {
 export const ExecutionComponent = ({executionId}) => {
 
   const [selected, setSelected] = useState([]);
-  const [step, setStep] = useState({num: 0, ready: false});
 
   const [{data, loading, error}] = useAxios(`${env('EXECUTION_HOST')}/api/v1/execution/${executionId}`);
   const [{data: updateData, loading: updateLoading, error: updateError}, update] = useAxios({
@@ -112,65 +111,39 @@ export const ExecutionComponent = ({executionId}) => {
       data: {
         repositoryId: data.repositoryId,
         commitId: data.commitId,
-        notebookIds: selected
+        notebookIds: ids
       }
     })
   }
 
-  if (loading) return <Placeholder/>
-
-  console.log(selected)
-  console.log(updateData)
-
-  function next() {
-    setStep(prevState => ({num: prevState.num + 1, ready: false}))
+  let content
+  if (loading || updateLoading) {
+    content = <Placeholder/>
+  } else {
+    if (error || updateError) {
+      content = <p>Error!</p>
+    } else {
+      content = <CommitExecutionComponent executionId={executionId} jobs={(updateData || data).jobs}/>
+    }
   }
 
-  function previous() {
-    setStep(prevState => ({num: prevState.num - 1, ready: false}))
-  }
 
   return (
     <>
-      <Step.Group attached='top'>
-        <Step active={step.num === 0} completed={step.num > 0}>
-          <Icon name='check square'/>
-          <Step.Content>
-            <Step.Title>Select</Step.Title>
-            <Step.Description>Choose the notebooks to include</Step.Description>
-          </Step.Content>
-        </Step>
-
-        <Step active={step.num === 1} completed={step.num > 1}>
-          <Icon name='eye'/>
-          <Step.Content>
-            <Step.Title>Review</Step.Title>
-            <Step.Description>Check the execution plan</Step.Description>
-          </Step.Content>
-        </Step>
-
-        <Step active={step.num === 2} completed={step.num > 2}>
-          <Icon name='play'/>
-          <Step.Content>
-            <Step.Title>Run the execution</Step.Title>
-          </Step.Content>
-        </Step>
-      </Step.Group>
-      <Segment attached>
+      <Segment>
         <Grid>
           <Grid.Column width={4}>
-            <NotebookTreeComponent onSelect={updateExecution} repositoryId={data.repositoryId}
-                                   commitId={data.commitId}/>
+            {(loading
+                ? <Placeholder/>
+                : <NotebookTreeComponent onSelect={updateExecution} repositoryId={data.repositoryId}
+                                         commitId={data.commitId}/>
+            )}
           </Grid.Column>
           <Grid.Column width={12}>
-            <CommitExecutionComponent executionId={executionId} jobs={(updateData || data).jobs}/>
+            {content}
           </Grid.Column>
         </Grid>
-
-        <Button onClick={previous} primary>Previous</Button>
-        <Button onClick={next} primary floated='right'>Next</Button>
       </Segment>
-
     </>
   )
 }
@@ -196,10 +169,10 @@ export const ExecutionComponent2 = () => {
           Content
         </Card.Description>
       </Card.Content>
-      <Card.Content >
-        <DirectedAcyclicGraph />
+      <Card.Content>
+        <DirectedAcyclicGraph/>
       </Card.Content>
-      <Card.Content style={{height:400, padding: 0}}>
+      <Card.Content style={{height: 400, padding: 0}}>
         <LazyLog stream
                  url="http://localhost:10180/api/v1/execution/340072cf-328f-4bc7-b9cf-4670e1d887be/job/340072cf-328f-4bc7-b9cf-4670e1d887be/log"/>
       </Card.Content>
