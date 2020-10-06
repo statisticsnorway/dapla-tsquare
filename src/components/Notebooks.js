@@ -7,19 +7,43 @@ import env from "@beam-australia/react-env";
 import useAxios from "axios-hooks";
 
 // TODO: Refactor
-const makeHierarchy = (notebooks) => {
-  const findOrCreate = (folders, nodes = [], leaf) => {
+const makeHierarchy = (notebooks, created, updated) => {
+  const containsChanges = (created, updated, leaf) => {
+    return !!(created.filter(n => n.id === leaf.id).length > 0 || updated.filter(n => n.id === leaf.id).length > 0);
+
+  }
+
+  const findOrCreate = (folders, nodes = [], leaf, created, updated) => {
     const folder = folders.shift()
     if (folders.length === 0) {
-      nodes.push({value: leaf.id, label: folder});
+      if (created.length > 0 && created.filter(notebook => notebook.id === leaf.id).length > 0) {
+        nodes.push({
+          value: leaf.id,
+          label: <span style={{ color: "green" }}>*{folder}</span>
+        });
+      } else if (updated.length > 0 && updated.filter(notebook => notebook.id === leaf.id).length > 0) {
+        nodes.push({
+          value: leaf.id,
+          label: <span style={{ color: "blue" }}>~{folder}</span>
+        });
+      } else {
+        nodes.push({
+          value: leaf.id,
+          label: folder
+        });
+      }
     } else {
       let node = nodes.find(e => e.value === folder);
       if (node === undefined) {
-        node = {value: folder, label: folder, children: []}
+        if (containsChanges(created, updated, leaf) === true) {
+          node = { value: folder, label: <span style={{fontWeight: "bold"}}>{folder}</span>, children: [] }
+        } else {
+          node = {value: folder, label: folder, children: []}
+        }
         nodes.push(node);
       }
       if (folders.length > 0) {
-        findOrCreate(folders, node.children, leaf)
+        findOrCreate(folders, node.children, leaf, created, updated)
       }
     }
   }
@@ -27,7 +51,7 @@ const makeHierarchy = (notebooks) => {
   const nodes = [];
   for (const notebook of notebooks) {
     const folders = notebook.path.split('/')
-    findOrCreate(folders, nodes, notebook);
+    findOrCreate(folders, nodes, notebook, created, updated);
   }
   return nodes;
 }
@@ -45,7 +69,7 @@ const icons = {
   leaf: <Icon fitted name="file code outline"/>
 }
 
-export const NotebookTree = ({notebooks = [], onSelect = () => {}}) => {
+export const NotebookTree = ({notebooks = [], onSelect = () => {}, created, updated}) => {
   const [checked, setChecked] = useState([]);
   const [expanded, setExpanded] = useState([]);
 
@@ -54,7 +78,7 @@ export const NotebookTree = ({notebooks = [], onSelect = () => {}}) => {
     onSelect(checked);
   }
 
-  return <CheckboxTree nodes={makeHierarchy(notebooks)}
+  return <CheckboxTree nodes={makeHierarchy(notebooks, created, updated)}
                        icons={icons}
                        checked={checked}
                        expanded={expanded}
@@ -63,7 +87,7 @@ export const NotebookTree = ({notebooks = [], onSelect = () => {}}) => {
   />
 }
 
-export const NotebookTreeComponent = ({repositoryId, commitId, onSelect}) => {
+export const NotebookTreeComponent = ({repositoryId, commitId, onSelect, created, updated}) => {
 
   const [{data, loading, error}] = useAxios(
     `${env('BLUEPRINT_HOST')}/api/v1/repositories/${repositoryId}/commits/${commitId}/notebooks`
@@ -74,6 +98,6 @@ export const NotebookTreeComponent = ({repositoryId, commitId, onSelect}) => {
     <Message.Header>Error</Message.Header>
     <p>{JSON.stringify(error)}</p>
   </Message>
-  return <NotebookTree notebooks={data} onSelect={onSelect}/>
+  return <NotebookTree notebooks={data} onSelect={onSelect} created={created} updated={updated}/>
 
 }
