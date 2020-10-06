@@ -12,7 +12,7 @@ import {DirectedAcyclicGraph} from "./Graph";
 export const ExecutionList = ({executions}) => (
   <List divided relaxed>
     {executions.map(execution => (
-      <ExecutionListItem executionId={execution.id} commitId={execution.id}
+      <ExecutionListItem key={execution.id} executionId={execution.id} commitId={execution.id}
                          status={execution.status} createdAt={execution.createdAt}/>
     ))}
   </List>
@@ -30,6 +30,8 @@ export const ExecutionIcon = ({status}) => {
       return <List.Icon name='check'/>
     case "Cancelled":
       return <List.Icon name='warning'/>
+    default:
+      break;
   }
 }
 
@@ -47,6 +49,8 @@ const ExecutionListItem = ({commitId, executionId, createdAt, status}) => {
         return "done"
       case "Cancelled":
         return "cancelled"
+      default:
+        break;
     }
   }
 
@@ -113,7 +117,7 @@ export const ExecutionComponent = ({executionId}) => {
     })
   }
 
-  if (loading) return <Placeholder></Placeholder>
+  if (loading) return <Placeholder/>
 
   console.log(selected)
   console.log(updateData)

@@ -37,7 +37,7 @@ function AppSettings ({ open, setOpen }) {
     if (open && !settingsEdited) {
       execute()
     }
-  }, [execute, open])
+  }, [execute, open, settingsEdited])
 
   return (
     <Modal open={open} onClose={() => setOpen(false)} style={SSB_STYLE}>

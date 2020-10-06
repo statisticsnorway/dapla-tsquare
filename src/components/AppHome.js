@@ -32,13 +32,13 @@ const CustomBreadCrumb = () => {
   return (<Breadcrumb>
 
     <Route path="/">
-      <Breadcrumb.Section divider>
+      <Breadcrumb.Section divider="true">
         <Link to='/'><Icon name='home'/></Link>
       </Breadcrumb.Section>
     </Route>
 
     <Route path="/repository">
-      <Breadcrumb.Section divider>
+      <Breadcrumb.Section divider="true">
         <Link to='/repository'>Repositories</Link>
       </Breadcrumb.Section>
     </Route>
