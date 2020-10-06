@@ -7,7 +7,8 @@ import {NotebookTreeComponent} from "./Notebooks";
 import {CommitExecutionComponent} from "./Commit";
 import {Link} from "react-router-dom";
 import {LazyLog} from "react-lazylog";
-import {DirectedAcyclicGraph} from "./Graph";
+import D3Dag, {DirectedAcyclicGraph, JobList} from "./Graph";
+import AutoSizer from "react-virtualized-auto-sizer";
 
 export const ExecutionList = ({executions}) => (
   <List divided relaxed>
@@ -142,6 +143,12 @@ export const ExecutionComponent = ({executionId}) => {
           <Grid.Column width={12}>
             {content}
           </Grid.Column>
+          <Grid.Row>
+            {(loading
+                ? <Placeholder/>
+                : <DirectedAcyclicGraph jobs={(updateData || data).jobs}/>
+            )}
+          </Grid.Row>
         </Grid>
       </Segment>
     </>

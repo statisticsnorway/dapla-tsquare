@@ -77,7 +77,7 @@ const ExecutionView = () => {
 const DagView = () => {
   const {executionId} = useParams();
   return <>
-    <ExecutionComponent2/>
+    <ExecutionComponent executionId={executionId}/>
   </>
 }
 

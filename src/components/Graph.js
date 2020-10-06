@@ -2,7 +2,7 @@ import React from 'react'
 import * as d3dag from 'd3-dag';
 import * as d3 from 'd3';
 import ColorHash from "color-hash";
-import {Grid, Label, List, Segment} from "semantic-ui-react";
+import {Grid, Label, List} from "semantic-ui-react";
 import Moment from "react-moment";
 import {UncontrolledReactSVGPanZoom} from "react-svg-pan-zoom";
 import AutoSizer from 'react-virtualized-auto-sizer'
@@ -129,31 +129,35 @@ const JobListItem = ({id, status, startedAt, endedAt, path}) => (
   </List.Item>
 )
 
-export const DirectedAcyclicGraph = ({nodes}) => {
+export const JobList = ({jobs}) => (
+  <List divided relaxed>
+    {jobs.map(job => (
+      <JobListItem
+        key={job.id}
+        id={job.notebook.id}
+        path={job.notebook.path}
+        status={job.status}
+        startedAt={job.startedAt}
+        endedAt={job.endedAt}
+      />
+    ))}
+  </List>
+)
+
+export const DirectedAcyclicGraph = ({jobs = []}) => {
   return (
-      <Grid columns={2} stackable divided>
-        <Grid.Column width={5}>
-          <List divided relaxed>
-            {jobsExample.map(job => (
-              <JobListItem
-                key={job.id}
-                id={job.notebook.id}
-                path={job.notebook.path}
-                status={job.status}
-                startedAt={job.startedAt}
-                endedAt={job.endedAt}
-              />
-            ))}
-          </List>
-        </Grid.Column>
-        <Grid.Column width={11} style={{height: 500, padding: 0}}>
-          <AutoSizer>
-            {({height, width}) => (
-              <D3Dag height={height} width={width} jobs={jobsExample}/>
-            )}
-          </AutoSizer>
-        </Grid.Column>
-      </Grid>
+    <Grid columns={2} stackable divided>
+      <Grid.Column width={5}>
+        <JobList jobs={jobs}/>
+      </Grid.Column>
+      <Grid.Column width={11} style={{height: 500, padding: 0}}>
+        <AutoSizer>
+          {({height, width}) => (
+            <D3Dag height={height} width={width} jobs={jobs}/>
+          )}
+        </AutoSizer>
+      </Grid.Column>
+    </Grid>
   );
 }
 
@@ -175,6 +179,10 @@ class D3Dag extends React.Component {
   }
 
   componentDidMount() {
+
+    if (this.props.jobs.length === 0) {
+      return;
+    }
 
     const dag = this.computeDAG();
     const svgSelection = d3.select(this.Viewer.Viewer.ViewerDOM).selectAll('g');
