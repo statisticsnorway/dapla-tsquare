@@ -71,7 +71,7 @@ const icons = {
   leaf: <Icon fitted name="file code outline"/>
 }
 
-export const NotebookTree = ({notebooks = [], onSelect = () => {}, created = [], updated = []}) => {
+export const NotebookTree = ({notebooks = [], onSelect = () => {}, created = [], updated = [], disabled}) => {
   const [checked, setChecked] = useState([]);
   const [expanded, setExpanded] = useState([]);
 
@@ -86,10 +86,11 @@ export const NotebookTree = ({notebooks = [], onSelect = () => {}, created = [],
                        expanded={expanded}
                        onCheck={newChecked => select(newChecked)}
                        onExpand={newExpanded => setExpanded(newExpanded)}
+                       disabled={disabled}
   />
 }
 
-export const NotebookTreeComponent = ({repositoryId, commitId, onSelect, created, updated}) => {
+export const NotebookTreeComponent = ({repositoryId, commitId, onSelect, created, updated, disabled}) => {
 
   const [{data, loading, error}] = useAxios(
     `${env('BLUEPRINT_HOST')}/api/v1/repositories/${repositoryId}/commits/${commitId}/notebooks`
@@ -100,6 +101,6 @@ export const NotebookTreeComponent = ({repositoryId, commitId, onSelect, created
     <Message.Header>Error</Message.Header>
     <p>{JSON.stringify(error)}</p>
   </Message>
-  return <NotebookTree notebooks={data} onSelect={onSelect} created={created} updated={updated}/>
+  return <NotebookTree notebooks={data} onSelect={onSelect} created={created} updated={updated} disabled={disabled}/>
 
 }

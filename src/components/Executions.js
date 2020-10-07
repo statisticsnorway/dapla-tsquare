@@ -106,7 +106,7 @@ export const ExecutionComponent = ({executionId}) => {
     }
   );
 
-  const [{data: startExecutionData, error: startExecutionError, response: startExecutionresponse},
+  const [{data: startExecutionData, error: startExecutionError, loading: startExecutionLoading, response: startExecutionresponse},
     startExecution] = useAxios({
       url: `${env('EXECUTION_HOST')}/api/v1/execution/${executionId}/start`,
       method: 'POST'
@@ -138,7 +138,13 @@ export const ExecutionComponent = ({executionId}) => {
             <Grid.Column textAlign="right">
               {(loading
                 ? <Placeholder/>
-                : <ExecutionButtonGroup executionId={executionId} jobStatus={data.status} startExecutionCallback={startExecutionAction} compact floated='right' />
+                : <ExecutionButtonGroup
+                    executionId={executionId}
+                    jobStatus={data.status}
+                    startExecutionCallback={startExecutionAction}
+                    loading={loading || startExecutionLoading}
+                    compact floated='right'
+                  />
               )}
             </Grid.Column>
           </Grid.Row>
@@ -146,7 +152,7 @@ export const ExecutionComponent = ({executionId}) => {
             {(loading
                 ? <Placeholder/>
                 : <NotebookTreeComponent onSelect={updateExecution} repositoryId={data.repositoryId}
-                                         commitId={data.commitId}/>
+                                         commitId={data.commitId} disabled={data.status !== "Created"}/>
             )}
           </Grid.Column>
           <Grid.Column width={12}>
@@ -165,7 +171,7 @@ export const ExecutionComponent = ({executionId}) => {
   )
 }
 
-const ExecutionButtonGroup = ({executionId, jobStatus, startExecutionCallback, ...rest}) => {
+const ExecutionButtonGroup = ({executionId, jobStatus, startExecutionCallback, loading, ...rest}) => {
 
   const [{data: cancelExecutionData, error: cancelExecutionError, response: cancelExecutionResponse},
     cancelExecution] = useAxios({
@@ -178,8 +184,8 @@ const ExecutionButtonGroup = ({executionId, jobStatus, startExecutionCallback, .
 
   return (
     <Button.Group labeled icon {...rest}>
-      <Button icon='play' content='start' onClick={startExecutionCallback} disabled={jobStatus !== 'Ready'}/>
-      <Button icon='cancel' content='cancel' onClick={cancelExecution} disabled={jobStatus !== 'Running'}/>
+      <Button icon='play' content='start' onClick={startExecutionCallback} disabled={jobStatus !== 'Ready'} loading={loading}/>
+      <Button icon='cancel' content='cancel' onClick={cancelExecution} disabled={jobStatus !== 'Running'} loading={loading}/>
       {/*TODO check if job is running before trying to cancel*/}
     </Button.Group>
   )
