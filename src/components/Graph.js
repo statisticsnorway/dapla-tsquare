@@ -102,8 +102,8 @@ function getTerm(status) {
   }
 }
 
-const JobListItem = ({id, jobId, status, startedAt, endedAt, path}) => (
-  <List.Item as={Link} onClick={() => setSelectedJob(jobId)}>
+const JobListItem = ({id, jobId, status, startedAt, endedAt, path, callback}) => (
+  <List.Item as={Link} onClick={() => callback(jobId)}>
     <List.Content>
       <List.Header>
         <Label style={{
@@ -131,14 +131,7 @@ const JobListItem = ({id, jobId, status, startedAt, endedAt, path}) => (
   </List.Item>
 )
 
-let selectedExecutionId;
-let selectedJobId;
-
-function setSelectedJob(jobId) {
-  selectedJobId = jobId;
-}
-
-export const JobList = ({jobs}) => (
+export const JobList = ({jobs, callback}) => (
   <List divided relaxed>
     {jobs.map(job => (
       <JobListItem
@@ -149,16 +142,17 @@ export const JobList = ({jobs}) => (
         status={job.status}
         startedAt={job.startedAt}
         endedAt={job.endedAt}
+        callback={callback}
       />
     ))}
   </List>
 )
 
-export const DirectedAcyclicGraph = ({jobs = [], executionId}) => {
+export const DirectedAcyclicGraph = ({jobs = [], setSelectedJobIdCallback}) => {
   return (
     <Grid columns={2} stackable divided>
       <Grid.Column width={5}>
-        <JobList jobs={jobs}/>
+        <JobList jobs={jobs} callback={setSelectedJobIdCallback}/>
       </Grid.Column>
       <Grid.Column width={11} style={{height: 500, padding: 0}}>
         <AutoSizer>
@@ -167,12 +161,6 @@ export const DirectedAcyclicGraph = ({jobs = [], executionId}) => {
           )}
         </AutoSizer>
       </Grid.Column>
-      <Grid.Row>
-        { selectedJobId &&
-          <LazyLog stream
-                   url={`http://localhost:10180/api/v1/execution/${executionId}/job/${selectedJobId}/log`}/>
-        } /*TODO This does not work*/
-      </Grid.Row>
     </Grid>
   );
 }

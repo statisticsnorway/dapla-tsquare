@@ -95,6 +95,7 @@ export const ExecutionListComponent = ({interval = 5000}) => {
 export const ExecutionComponent = ({executionId}) => {
 
   const [selected, setSelected] = useState([]);
+  const [selectedJobId, setSelectedJobId] = useState();
 
   const [{data, loading, error}] = useAxios(`${env('EXECUTION_HOST')}/api/v1/execution/${executionId}`);
   const [{data: updateData, loading: updateLoading, error: updateError}, update] = useAxios({
@@ -133,6 +134,11 @@ export const ExecutionComponent = ({executionId}) => {
     <>
       <Segment>
         <Grid divided>
+          <Grid.Row>
+            <Grid.Column textAlign="right">
+              <ExecutionButtonGroup executionId={executionId} compact floated='right' />
+            </Grid.Column>
+          </Grid.Row>
           <Grid.Column width={4}>
             {(loading
                 ? <Placeholder/>
@@ -141,25 +147,42 @@ export const ExecutionComponent = ({executionId}) => {
             )}
           </Grid.Column>
           <Grid.Column width={12}>
-            {/*{content}*/}
             {(loading
                 ? <Placeholder/>
-                : <DirectedAcyclicGraph jobs={(updateData || data).jobs} executionId={executionId}/>
+                : <DirectedAcyclicGraph jobs={(updateData || data).jobs} setSelectedJobIdCallback={setSelectedJobId}/>
             )}
           </Grid.Column>
-          {/*<Grid.Row>*/}
-          {/*</Grid.Row>*/}
         </Grid>
       </Segment>
+      { selectedJobId && executionId &&
+      <LazyLog stream
+               url={`http://localhost:10180/api/v1/execution/${executionId}/job/${selectedJobId}/log`}/>
+      }
     </>
   )
 }
 
-const ExecutionButtonGroup = ({...rest}) => {
+const ExecutionButtonGroup = ({executionId, ...rest}) => {
+  const [startExecution] = useAxios({
+      url: `${env('EXECUTION_HOST')}/api/v1/execution/${executionId}/start`,
+      method: 'POST'
+    },
+    {
+      manual: true
+    });
+
+  const [cancelExecution] = useAxios({
+      url: `${env('EXECUTION_HOST')}/api/v1/execution/${executionId}/cancel`,
+      method: 'PUT'
+    },
+    {
+      manual: true
+    });
+  
   return (
     <Button.Group labeled icon {...rest}>
-      <Button icon='play' content='start'/>
-      <Button icon='cancel' content='cancel'/>
+      <Button icon='play' content='start' onClick={startExecution}/>
+      <Button icon='cancel' content='cancel' onClick={cancelExecution}/>
     </Button.Group>
   )
 }
