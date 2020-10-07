@@ -163,7 +163,8 @@ export const ExecutionComponent = ({executionId}) => {
 }
 
 const ExecutionButtonGroup = ({executionId, ...rest}) => {
-  const [startExecution] = useAxios({
+  const [{data: startExecutionData, error: startExecutionError, response: startExecutionresponse},
+    startExecution] = useAxios({
       url: `${env('EXECUTION_HOST')}/api/v1/execution/${executionId}/start`,
       method: 'POST'
     },
@@ -171,7 +172,8 @@ const ExecutionButtonGroup = ({executionId, ...rest}) => {
       manual: true
     });
 
-  const [cancelExecution] = useAxios({
+  const [{data: cancelExecutionData, error: cancelExecutionError, response: cancelExecutionResponse},
+    cancelExecution] = useAxios({
       url: `${env('EXECUTION_HOST')}/api/v1/execution/${executionId}/cancel`,
       method: 'PUT'
     },
