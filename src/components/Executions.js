@@ -137,8 +137,8 @@ export const ExecutionComponent = ({executionId}) => {
           <Grid.Row>
             <Grid.Column textAlign="right">
               {(loading
-                ? <Placeholder/>
-                : <ExecutionButtonGroup
+                  ? <Placeholder/>
+                  : <ExecutionButtonGroup
                     executionId={executionId}
                     jobStatus={data.status}
                     startExecutionCallback={startExecutionAction}
@@ -152,7 +152,8 @@ export const ExecutionComponent = ({executionId}) => {
             {(loading
                 ? <Placeholder/>
                 : <NotebookTreeComponent onSelect={updateExecution} repositoryId={data.repositoryId}
-                                         commitId={data.commitId} disabled={data.status !== "Ready"}/>
+                                         commitId={data.commitId} disabled={data.status !== "Ready"}
+                                         showCheckboxes={true}/>
             )}
           </Grid.Column>
           <Grid.Column width={12}>
