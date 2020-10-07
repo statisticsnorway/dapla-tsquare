@@ -94,10 +94,9 @@ export const ExecutionListComponent = ({interval = 5000}) => {
 
 export const ExecutionComponent = ({executionId}) => {
 
-  const [selected, setSelected] = useState([]);
   const [selectedJobId, setSelectedJobId] = useState();
 
-  const [{data, loading, error}] = useAxios(`${env('EXECUTION_HOST')}/api/v1/execution/${executionId}`);
+  const [{data, loading, error}, refetch] = useAxios(`${env('EXECUTION_HOST')}/api/v1/execution/${executionId}`);
   const [{data: updateData, loading: updateLoading, error: updateError}, update] = useAxios({
       url: `${env('EXECUTION_HOST')}/api/v1/execution/${executionId}`,
       method: 'PUT'
@@ -107,8 +106,21 @@ export const ExecutionComponent = ({executionId}) => {
     }
   );
 
+  const [{data: startExecutionData, error: startExecutionError, response: startExecutionresponse},
+    startExecution] = useAxios({
+      url: `${env('EXECUTION_HOST')}/api/v1/execution/${executionId}/start`,
+      method: 'POST'
+    },
+    {
+      manual: true
+    });
+
+  function startExecutionAction() {
+    startExecution()
+      .then(() => refetch())
+  }
+
   function updateExecution(ids) {
-    setSelected(ids)
     update({
       data: {
         repositoryId: data.repositoryId,
@@ -118,25 +130,16 @@ export const ExecutionComponent = ({executionId}) => {
     })
   }
 
-  let content
-  if (loading || updateLoading) {
-    content = <Placeholder/>
-  } else {
-    if (error || updateError) {
-      content = <p>Error!</p>
-    } else {
-      content = <CommitExecutionComponent executionId={executionId} jobs={(updateData || data).jobs}/>
-    }
-  }
-
-
   return (
     <>
       <Segment>
         <Grid divided>
           <Grid.Row>
             <Grid.Column textAlign="right">
-              <ExecutionButtonGroup executionId={executionId} compact floated='right' />
+              {(loading
+                ? <Placeholder/>
+                : <ExecutionButtonGroup executionId={executionId} jobStatus={data.status} startExecutionCallback={startExecutionAction} compact floated='right' />
+              )}
             </Grid.Column>
           </Grid.Row>
           <Grid.Column width={4}>
@@ -162,15 +165,7 @@ export const ExecutionComponent = ({executionId}) => {
   )
 }
 
-const ExecutionButtonGroup = ({executionId, ...rest}) => {
-  const [{data: startExecutionData, error: startExecutionError, response: startExecutionresponse},
-    startExecution] = useAxios({
-      url: `${env('EXECUTION_HOST')}/api/v1/execution/${executionId}/start`,
-      method: 'POST'
-    },
-    {
-      manual: true
-    });
+const ExecutionButtonGroup = ({executionId, jobStatus, startExecutionCallback, ...rest}) => {
 
   const [{data: cancelExecutionData, error: cancelExecutionError, response: cancelExecutionResponse},
     cancelExecution] = useAxios({
@@ -180,11 +175,12 @@ const ExecutionButtonGroup = ({executionId, ...rest}) => {
     {
       manual: true
     });
-  
+
   return (
     <Button.Group labeled icon {...rest}>
-      <Button icon='play' content='start' onClick={startExecution}/>
-      <Button icon='cancel' content='cancel' onClick={cancelExecution}/>
+      <Button icon='play' content='start' onClick={startExecutionCallback} disabled={jobStatus !== 'Ready'}/>
+      <Button icon='cancel' content='cancel' onClick={cancelExecution} disabled={jobStatus !== 'Running'}/>
+      {/*TODO check if job is running before trying to cancel*/}
     </Button.Group>
   )
 }
