@@ -1,4 +1,4 @@
-import React, {useState} from 'react'
+import React, { useEffect, useState } from 'react'
 import CheckboxTree from 'react-checkbox-tree';
 import {Dimmer, Icon, Loader, Message} from 'semantic-ui-react'
 
@@ -76,9 +76,13 @@ const icons = {
 }
 
 export const NotebookTree =
-  ({notebooks = [], onSelect = () => {}, created = [], updated = [], disabled, showCheckboxes}) => {
+  ({notebooks = [], onSelect = () => {}, created = [], updated = [], disabled, showCheckboxes, checkedNotebooks}) => {
   const [checked, setChecked] = useState([]);
   const [expanded, setExpanded] = useState([]);
+
+  useEffect(() => {
+    setChecked(checkedNotebooks);
+  }, [checkedNotebooks, setChecked]);
 
   function select(checked) {
     setChecked(checked);
@@ -96,7 +100,7 @@ export const NotebookTree =
 }
 
 export const NotebookTreeComponent =
-  ({repositoryId, commitId, onSelect, created, updated, disabled, showCheckboxes}) => {
+  ({repositoryId, commitId, onSelect, created, updated, disabled, showCheckboxes, checked}) => {
 
   const [{data, loading, error}] = useAxios(
     `${env('BLUEPRINT_HOST')}/api/v1/repositories/${repositoryId}/commits/${commitId}/notebooks`
@@ -113,6 +117,8 @@ export const NotebookTreeComponent =
     created={created}
     updated={updated}
     disabled={disabled}
-    showCheckboxes={showCheckboxes}/>
+    showCheckboxes={showCheckboxes}
+    checkedNotebooks={checked}
+  />
 
 }
