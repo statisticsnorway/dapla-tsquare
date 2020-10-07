@@ -10,19 +10,20 @@ import useAxios from "axios-hooks";
 const makeHierarchy = (notebooks, created, updated) => {
 
   const containsChanges = (created, updated, leaf) => {
-    return !!(created.filter(n => n.id === leaf.id).length > 0 || updated.filter(n => n.id === leaf.id).length > 0);
+    return !!(created?.filter(n => n.id === leaf.id).length > 0
+      || updated?.filter(n => n.id === leaf.id).length > 0);
 
   }
 
   const findOrCreate = (folders, nodes = [], leaf, created, updated) => {
     const folder = folders.shift()
     if (folders.length === 0) {
-      if (created.length > 0 && created.filter(notebook => notebook.id === leaf.id).length > 0) {
+      if (created?.length > 0 && created.filter(notebook => notebook.id === leaf.id).length > 0) {
         nodes.push({
           value: leaf.id,
           label: <span style={{ color: "green" }}>*{folder}</span>
         });
-      } else if (updated.length > 0 && updated.filter(notebook => notebook.id === leaf.id).length > 0) {
+      } else if (updated?.length > 0 && updated.filter(notebook => notebook.id === leaf.id).length > 0) {
         nodes.push({
           value: leaf.id,
           label: <span style={{ color: "blue" }}>~{folder}</span>

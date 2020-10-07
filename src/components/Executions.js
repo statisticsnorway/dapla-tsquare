@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react'
-import {Button, Card, Grid, Icon, List, Placeholder, Segment, Step} from "semantic-ui-react";
+import {Button, Card, Grid, List, Placeholder, Segment} from "semantic-ui-react";
 import useAxios from "axios-hooks";
 import env from "@beam-australia/react-env";
 import Moment from "react-moment";
@@ -7,12 +7,13 @@ import {NotebookTreeComponent} from "./Notebooks";
 import {CommitExecutionComponent} from "./Commit";
 import {Link} from "react-router-dom";
 import {LazyLog} from "react-lazylog";
-import {DirectedAcyclicGraph} from "./Graph";
+import D3Dag, {DirectedAcyclicGraph, JobList} from "./Graph";
+import AutoSizer from "react-virtualized-auto-sizer";
 
 export const ExecutionList = ({executions}) => (
   <List divided relaxed>
     {executions.map(execution => (
-      <ExecutionListItem executionId={execution.id} commitId={execution.id}
+      <ExecutionListItem key={execution.id} executionId={execution.id} commitId={execution.id}
                          status={execution.status} createdAt={execution.createdAt}/>
     ))}
   </List>
@@ -30,6 +31,8 @@ export const ExecutionIcon = ({status}) => {
       return <List.Icon name='check'/>
     case "Cancelled":
       return <List.Icon name='warning'/>
+    default:
+      break;
   }
 }
 
@@ -47,6 +50,8 @@ const ExecutionListItem = ({commitId, executionId, createdAt, status}) => {
         return "done"
       case "Cancelled":
         return "cancelled"
+      default:
+        break;
     }
   }
 
@@ -90,7 +95,7 @@ export const ExecutionListComponent = ({interval = 5000}) => {
 export const ExecutionComponent = ({executionId}) => {
 
   const [selected, setSelected] = useState([]);
-  const [step, setStep] = useState({num: 0, ready: false});
+  const [selectedJobId, setSelectedJobId] = useState();
 
   const [{data, loading, error}] = useAxios(`${env('EXECUTION_HOST')}/api/v1/execution/${executionId}`);
   const [{data: updateData, loading: updateLoading, error: updateError}, update] = useAxios({
@@ -108,74 +113,76 @@ export const ExecutionComponent = ({executionId}) => {
       data: {
         repositoryId: data.repositoryId,
         commitId: data.commitId,
-        notebookIds: selected
+        notebookIds: ids
       }
     })
   }
 
-  if (loading) return <Placeholder></Placeholder>
-
-  console.log(selected)
-  console.log(updateData)
-
-  function next() {
-    setStep(prevState => ({num: prevState.num + 1, ready: false}))
+  let content
+  if (loading || updateLoading) {
+    content = <Placeholder/>
+  } else {
+    if (error || updateError) {
+      content = <p>Error!</p>
+    } else {
+      content = <CommitExecutionComponent executionId={executionId} jobs={(updateData || data).jobs}/>
+    }
   }
 
-  function previous() {
-    setStep(prevState => ({num: prevState.num - 1, ready: false}))
-  }
 
   return (
     <>
-      <Step.Group attached='top'>
-        <Step active={step.num === 0} completed={step.num > 0}>
-          <Icon name='check square'/>
-          <Step.Content>
-            <Step.Title>Select</Step.Title>
-            <Step.Description>Choose the notebooks to include</Step.Description>
-          </Step.Content>
-        </Step>
-
-        <Step active={step.num === 1} completed={step.num > 1}>
-          <Icon name='eye'/>
-          <Step.Content>
-            <Step.Title>Review</Step.Title>
-            <Step.Description>Check the execution plan</Step.Description>
-          </Step.Content>
-        </Step>
-
-        <Step active={step.num === 2} completed={step.num > 2}>
-          <Icon name='play'/>
-          <Step.Content>
-            <Step.Title>Run the execution</Step.Title>
-          </Step.Content>
-        </Step>
-      </Step.Group>
-      <Segment attached>
-        <Grid>
+      <Segment>
+        <Grid divided>
+          <Grid.Row>
+            <Grid.Column textAlign="right">
+              <ExecutionButtonGroup executionId={executionId} compact floated='right' />
+            </Grid.Column>
+          </Grid.Row>
           <Grid.Column width={4}>
-            <NotebookTreeComponent onSelect={updateExecution} repositoryId={data.repositoryId}
-                                   commitId={data.commitId}/>
+            {(loading
+                ? <Placeholder/>
+                : <NotebookTreeComponent onSelect={updateExecution} repositoryId={data.repositoryId}
+                                         commitId={data.commitId}/>
+            )}
           </Grid.Column>
           <Grid.Column width={12}>
-            <CommitExecutionComponent executionId={executionId} jobs={(updateData || data).jobs}/>
+            {(loading
+                ? <Placeholder/>
+                : <DirectedAcyclicGraph jobs={(updateData || data).jobs} setSelectedJobIdCallback={setSelectedJobId}/>
+            )}
           </Grid.Column>
         </Grid>
-
-        <Button onClick={previous} primary>Previous</Button>
-        <Button onClick={next} primary floated='right'>Next</Button>
       </Segment>
-
+      { selectedJobId && executionId &&
+      <LazyLog stream
+               url={`http://localhost:10180/api/v1/execution/${executionId}/job/${selectedJobId}/log`}/>
+      }
     </>
   )
 }
 
-const ExecutionButtonGroup = ({...rest}) => {
+const ExecutionButtonGroup = ({executionId, ...rest}) => {
+  const [startExecution] = useAxios({
+      url: `${env('EXECUTION_HOST')}/api/v1/execution/${executionId}/start`,
+      method: 'POST'
+    },
+    {
+      manual: true
+    });
+
+  const [cancelExecution] = useAxios({
+      url: `${env('EXECUTION_HOST')}/api/v1/execution/${executionId}/cancel`,
+      method: 'PUT'
+    },
+    {
+      manual: true
+    });
+  
   return (
     <Button.Group labeled icon {...rest}>
-      <Button icon='play' content='start'/>
-      <Button icon='cancel' content='cancel'/>
+      <Button icon='play' content='start' onClick={startExecution}/>
+      <Button icon='cancel' content='cancel' onClick={cancelExecution}/>
     </Button.Group>
   )
 }
@@ -192,10 +199,10 @@ export const ExecutionComponent2 = () => {
           Content
         </Card.Description>
       </Card.Content>
-      <Card.Content >
-        <DirectedAcyclicGraph />
+      <Card.Content>
+        <DirectedAcyclicGraph/>
       </Card.Content>
-      <Card.Content style={{height:400, padding: 0}}>
+      <Card.Content style={{height: 400, padding: 0}}>
         <LazyLog stream
                  url="http://localhost:10180/api/v1/execution/340072cf-328f-4bc7-b9cf-4670e1d887be/job/340072cf-328f-4bc7-b9cf-4670e1d887be/log"/>
       </Card.Content>

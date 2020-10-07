@@ -1,4 +1,4 @@
-import React, {useState} from 'react'
+import React from 'react'
 import {
   Button,
   Card,
@@ -11,25 +11,25 @@ import {
   List,
   Loader,
   Message,
-  Modal, Popup,
+  Popup,
   Segment,
   Table
 } from "semantic-ui-react";
-import {Link} from "react-router-dom";
 import Moment from "react-moment";
 import env from "@beam-australia/react-env";
 import useAxios from "axios-hooks";
-import {NotebookTreeComponent} from "./Notebooks";
+import { NotebookTreeComponent } from "./Notebooks";
+import { useHistory } from "react-router-dom"
 
 export const CommitItem = ({id, repositoryId, message, committer: {name}, committedAt}) => (
   <List.Item>
     <List.Content>
-      <List.Header as='a'>
-        <Link to={`/repository/${repositoryId}/commit/${id}`}>
+      <List.Header as='a' href={`/repository/${repositoryId}/commit/${id}`}>
+        <List.Item>
           {message && message.split('\n')[0]}
-        </Link>
+        </List.Item>
       </List.Header>
-      <List.Description as='a'>
+      <List.Description as='a' href={`/repository/${repositoryId}/commit/${id}`}>
         <List.Icon name='github' size='small' verticalAlign='middle'/>
         <b>{name}</b> committed <Moment fromNow unix>{committedAt}</Moment>
       </List.Description>
@@ -136,6 +136,7 @@ const CommitDetailError = ({error}) => (
 )
 
 export const CommitDetail = ({title, body, created, updated, deleted, committedAt, id, committer, children, repositoryId, commitId}) => {
+  let history = useHistory();
 
   const [{data, loading, error}, execute] = useAxios({
       url: `${env('EXECUTION_HOST')}/api/v1/execute`,
@@ -152,6 +153,8 @@ export const CommitDetail = ({title, body, created, updated, deleted, committedA
         repositoryId,
         commitId
       }
+    }).then((response) => {
+      history.push(`/execution/${response.data.id}`)
     })
   }
 

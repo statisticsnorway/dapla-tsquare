@@ -32,13 +32,13 @@ const CustomBreadCrumb = () => {
   return (<Breadcrumb>
 
     <Route path="/">
-      <Breadcrumb.Section divider>
+      <Breadcrumb.Section divider="true">
         <Link to='/'><Icon name='home'/></Link>
       </Breadcrumb.Section>
     </Route>
 
     <Route path="/repository">
-      <Breadcrumb.Section divider>
+      <Breadcrumb.Section divider="true">
         <Link to='/repository'>Repositories</Link>
       </Breadcrumb.Section>
     </Route>
@@ -77,7 +77,7 @@ const ExecutionView = () => {
 const DagView = () => {
   const {executionId} = useParams();
   return <>
-    <ExecutionComponent2/>
+    <ExecutionComponent executionId={executionId}/>
   </>
 }
 
@@ -85,8 +85,8 @@ const DagView = () => {
 function AppHome() {
   return (
     <div>
-      <Container>
-        <Grid columns={2}>
+      <Container style={{width: "90%"}}>
+        <Grid columns={2} >
 
           <Grid.Row>
             <CustomBreadCrumb/>
@@ -127,7 +127,8 @@ function AppHome() {
                   <RepositoryView/>
                 </Route>
                 <Route path="/execution/:executionId">
-                  <ExecutionView/>
+                  {/*<ExecutionView/>*/}
+                  <DagView/>
                 </Route>
                 <Route>
                   <CommitListPlaceHolder/>
