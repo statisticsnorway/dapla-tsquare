@@ -152,7 +152,7 @@ export const ExecutionComponent = ({executionId}) => {
             {(loading
                 ? <Placeholder/>
                 : <NotebookTreeComponent onSelect={updateExecution} repositoryId={data.repositoryId}
-                                         commitId={data.commitId} disabled={data.status !== "Created"}/>
+                                         commitId={data.commitId} disabled={data.status !== "Ready"}/>
             )}
           </Grid.Column>
           <Grid.Column width={12}>
