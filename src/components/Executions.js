@@ -95,7 +95,7 @@ export const ExecutionComponent = ({executionId}) => {
   const [selected, setSelected] = useState([]);
   const [selectedJobId, setSelectedJobId] = useState();
 
-  let [{data, loading, error}, refetch] = useAxios(`${env('EXECUTION_HOST')}/api/v1/execution/${executionId}`);
+  const [{data, loading, error}, refetch] = useAxios(`${env('EXECUTION_HOST')}/api/v1/execution/${executionId}`);
   const [{data: updateData, loading: updateLoading, error: updateError}, update] = useAxios({
       url: `${env('EXECUTION_HOST')}/api/v1/execution/${executionId}`,
       method: 'PUT'
@@ -105,8 +105,10 @@ export const ExecutionComponent = ({executionId}) => {
     }
   );
 
-  const [{data: startExecutionData, error: startExecutionError, loading: startExecutionLoading, response: startExecutionresponse},
-    startExecution] = useAxios({
+  const jobs = (updateData || data) ? (updateData || data).jobs : [];
+  const jobIds = jobs.map(job => job.notebook.id)
+
+  const [{loading: startExecutionLoading}, startExecution] = useAxios({
       url: `${env('EXECUTION_HOST')}/api/v1/execution/${executionId}/start`,
       method: 'POST'
     },
@@ -114,23 +116,8 @@ export const ExecutionComponent = ({executionId}) => {
       manual: true
     });
 
-  useEffect( () => {
-    if (data) {
-      setSelected(data.jobs.map(job => job.notebook.id))
-    }
-
-  }, [data, setSelected]);
-
   function startExecutionAction() {
-    startExecution()
-      .then(() => refetchAction());
-  }
-
-  function refetchAction() {
-    refetch()
-      .then(response => {
-        data = response.data
-      })
+    startExecution().then(() => refetch());
   }
 
   function updateExecution(ids) {
@@ -141,9 +128,6 @@ export const ExecutionComponent = ({executionId}) => {
         commitId: data.commitId,
         notebookIds: ids
       }
-    }).then(response => {
-      data = response.data
-      setSelected(data.jobs.map(job => job.notebook.id))
     })
   }
 
@@ -161,7 +145,7 @@ export const ExecutionComponent = ({executionId}) => {
                     startExecutionCallback={startExecutionAction}
                     loading={loading || startExecutionLoading}
                     compact floated='right'
-                    hasSelectedNotebooks={selected.length > 0}
+                    hasSelectedNotebooks={jobIds.length > 0}
                   />
               )}
             </Grid.Column>
@@ -171,13 +155,13 @@ export const ExecutionComponent = ({executionId}) => {
                 ? <Placeholder/>
                 : <NotebookTreeComponent onSelect={updateExecution} repositoryId={data.repositoryId}
                                          commitId={data.commitId} disabled={data.status !== "Ready"}
-                                         showCheckboxes={true} checked={selected}/>
+                                         showCheckboxes={true} checked={ loading || updateLoading ? selected : jobIds}/>
             )}
           </Grid.Column>
           <Grid.Column width={12}>
             {(loading
                 ? <Placeholder/>
-                : <DirectedAcyclicGraph jobs={(updateData || data).jobs} setSelectedJobIdCallback={setSelectedJobId}/>
+                : <DirectedAcyclicGraph jobs={jobs} setSelectedJobIdCallback={setSelectedJobId}/>
             )}
           </Grid.Column>
         </Grid>
