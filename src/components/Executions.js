@@ -126,7 +126,7 @@ export const ExecutionComponent = ({executionId}) => {
       data: {
         repositoryId: data.repositoryId,
         commitId: data.commitId,
-        notebookIds: ids
+        endNotebookIds: ids
       }
     })
   }
