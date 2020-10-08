@@ -49,13 +49,12 @@ class D3Graph2 extends React.Component {
   static getDerivedStateFromProps(props) {
     // Convert to dag
     const dag = props.createDag(props.data);
-    // Compute the coordinates
-
     const {
       width = dag.size() * nodeHeight,
       height = dag.size() * nodeWidth
     } = props;
 
+    // Compute the coordinates
     const layoutDag = props.layout.size([width, height])(dag);
     return {
       dag: layoutDag
