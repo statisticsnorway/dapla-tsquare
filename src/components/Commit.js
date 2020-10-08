@@ -212,7 +212,8 @@ export const CommitDetailComponent = ({repositoryId, commitId}) => {
   return (<CommitDetail id={commitId} title={firstLine} body={otherLines.join('\n')}
                         updated={updated} deleted={deleted} created={created}
                         committer={committer} committedAt={committedAt} repositoryId={repositoryId} commitId={commitId}>
-      <NotebookTreeComponent repositoryId={repositoryId} commitId={commitId} created={created} updated={updated}/>
+      <NotebookTreeComponent repositoryId={repositoryId} commitId={commitId} created={created} updated={updated}
+                             showCheckboxes={false}/>
     </CommitDetail>
   )
 }

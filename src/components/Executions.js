@@ -1,14 +1,12 @@
-import React, {useEffect, useState} from 'react'
-import {Button, Card, Grid, List, Placeholder, Segment} from "semantic-ui-react";
+import React, { useEffect, useState } from 'react'
+import { Button, Card, Grid, List, Placeholder, Popup, Segment } from "semantic-ui-react";
 import useAxios from "axios-hooks";
 import env from "@beam-australia/react-env";
 import Moment from "react-moment";
-import {NotebookTreeComponent} from "./Notebooks";
-import {CommitExecutionComponent} from "./Commit";
-import {Link} from "react-router-dom";
-import {LazyLog} from "react-lazylog";
-import D3Dag, {DirectedAcyclicGraph, JobList} from "./Graph";
-import AutoSizer from "react-virtualized-auto-sizer";
+import { NotebookTreeComponent } from "./Notebooks";
+import { Link } from "react-router-dom";
+import { LazyLog } from "react-lazylog";
+import { DirectedAcyclicGraph } from "./Graph";
 
 export const ExecutionList = ({executions}) => (
   <List divided relaxed>
@@ -97,7 +95,7 @@ export const ExecutionComponent = ({executionId}) => {
   const [selected, setSelected] = useState([]);
   const [selectedJobId, setSelectedJobId] = useState();
 
-  const [{data, loading, error}] = useAxios(`${env('EXECUTION_HOST')}/api/v1/execution/${executionId}`);
+  const [{data, loading, error}, refetch] = useAxios(`${env('EXECUTION_HOST')}/api/v1/execution/${executionId}`);
   const [{data: updateData, loading: updateLoading, error: updateError}, update] = useAxios({
       url: `${env('EXECUTION_HOST')}/api/v1/execution/${executionId}`,
       method: 'PUT'
@@ -106,6 +104,21 @@ export const ExecutionComponent = ({executionId}) => {
       manual: true
     }
   );
+
+  const jobs = (updateData || data) ? (updateData || data).jobs : [];
+  const jobIds = jobs.map(job => job.notebook.id)
+
+  const [{loading: startExecutionLoading}, startExecution] = useAxios({
+      url: `${env('EXECUTION_HOST')}/api/v1/execution/${executionId}/start`,
+      method: 'POST'
+    },
+    {
+      manual: true
+    });
+
+  function startExecutionAction() {
+    startExecution().then(() => refetch());
+  }
 
   function updateExecution(ids) {
     setSelected(ids)
@@ -118,38 +131,37 @@ export const ExecutionComponent = ({executionId}) => {
     })
   }
 
-  let content
-  if (loading || updateLoading) {
-    content = <Placeholder/>
-  } else {
-    if (error || updateError) {
-      content = <p>Error!</p>
-    } else {
-      content = <CommitExecutionComponent executionId={executionId} jobs={(updateData || data).jobs}/>
-    }
-  }
-
-
   return (
     <>
       <Segment>
         <Grid divided>
           <Grid.Row>
             <Grid.Column textAlign="right">
-              <ExecutionButtonGroup executionId={executionId} compact floated='right' />
+              {(loading
+                  ? <Placeholder/>
+                  : <ExecutionButtonGroup
+                    executionId={executionId}
+                    jobStatus={data.status}
+                    startExecutionCallback={startExecutionAction}
+                    loading={loading || startExecutionLoading}
+                    compact floated='right'
+                    hasSelectedNotebooks={jobIds.length > 0}
+                  />
+              )}
             </Grid.Column>
           </Grid.Row>
           <Grid.Column width={4}>
             {(loading
                 ? <Placeholder/>
                 : <NotebookTreeComponent onSelect={updateExecution} repositoryId={data.repositoryId}
-                                         commitId={data.commitId}/>
+                                         commitId={data.commitId} disabled={data.status !== "Ready"}
+                                         showCheckboxes={true} checked={ loading || updateLoading ? selected : jobIds}/>
             )}
           </Grid.Column>
           <Grid.Column width={12}>
             {(loading
                 ? <Placeholder/>
-                : <DirectedAcyclicGraph jobs={(updateData || data).jobs} setSelectedJobIdCallback={setSelectedJobId}/>
+                : <DirectedAcyclicGraph jobs={jobs} setSelectedJobIdCallback={setSelectedJobId}/>
             )}
           </Grid.Column>
         </Grid>
@@ -162,15 +174,7 @@ export const ExecutionComponent = ({executionId}) => {
   )
 }
 
-const ExecutionButtonGroup = ({executionId, ...rest}) => {
-  const [{data: startExecutionData, error: startExecutionError, response: startExecutionresponse},
-    startExecution] = useAxios({
-      url: `${env('EXECUTION_HOST')}/api/v1/execution/${executionId}/start`,
-      method: 'POST'
-    },
-    {
-      manual: true
-    });
+const ExecutionButtonGroup = ({executionId, jobStatus, startExecutionCallback, hasSelectedNotebooks, loading, ...rest}) => {
 
   const [{data: cancelExecutionData, error: cancelExecutionError, response: cancelExecutionResponse},
     cancelExecution] = useAxios({
@@ -180,11 +184,18 @@ const ExecutionButtonGroup = ({executionId, ...rest}) => {
     {
       manual: true
     });
-  
+
   return (
     <Button.Group labeled icon {...rest}>
-      <Button icon='play' content='start' onClick={startExecution}/>
-      <Button icon='cancel' content='cancel' onClick={cancelExecution}/>
+      <Popup
+        trigger={<Button icon='play' content='start' onClick={startExecutionCallback}
+                         disabled={jobStatus !== 'Ready' || !hasSelectedNotebooks} loading={loading}/>}
+        content={"Velg minst én notebook for å starte en kjøring"}
+        open={!hasSelectedNotebooks}
+      />
+      <Button icon='cancel' content='cancel' onClick={cancelExecution} disabled={jobStatus !== 'Running'}
+              loading={loading}/>
+      {/*TODO check if job is running before trying to cancel*/}
     </Button.Group>
   )
 }
