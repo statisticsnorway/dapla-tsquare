@@ -6,7 +6,7 @@ import Moment from "react-moment";
 import { NotebookTreeComponent } from "./Notebooks";
 import { Link } from "react-router-dom";
 import { LazyLog } from "react-lazylog";
-import { DirectedAcyclicGraph } from "./Graph";
+import {DirectedAcyclicGraph} from "./Graph";
 
 export const ExecutionList = ({executions}) => (
   <List divided relaxed>

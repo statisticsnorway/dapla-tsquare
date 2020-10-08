@@ -10,6 +10,7 @@
     "d3": "^6.2.0",
     "d3-dag": "^0.4.5",
     "moment": "^2.29.0",
+    "prop-types": "^15.7.2",
     "react": "^16.13.1",
     "react-axios": "^2.0.3",
     "react-checkbox-tree": "^1.6.0",
