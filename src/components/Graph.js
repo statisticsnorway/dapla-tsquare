@@ -5,74 +5,11 @@ import ColorHash from "color-hash";
 import {Grid, Label, List} from "semantic-ui-react";
 import Moment from "react-moment";
 import {UncontrolledReactSVGPanZoom} from "react-svg-pan-zoom";
-import AutoSizer from 'react-virtualized-auto-sizer'
 import {ExecutionIcon} from "./Executions";
-import { LazyLog } from "react-lazylog"
-import { Link } from 'react-router-dom'
+import {Link} from 'react-router-dom'
+import D3Graph2 from "./D3Graph";
 
 const hash = new ColorHash({lightness: [0.35, 0.5, 0.65]})
-
-const jobsExample = [{
-  "id": "1424026a-a3e4-4af2-9ac7-b910f98f213d",
-  "status": "Ready",
-  "startedAt": null,
-  "endedAt": null,
-  "exception": null,
-  "notebook": {
-    "id": "a92b824decc7b369180f4c30241e91f149c20e96",
-    "path": "blueprint/tests/1.ipynb",
-    "commitId": "b1c4d0db22fcd94ae0718319756d979f3c62490a",
-    "fetchUrl": "/api/v1/repositories/9bf7399763ff968e4dbaf1bef11ad7b8f5a75c09/commits/b1c4d0db22fcd94ae0718319756d979f3c62490a/notebooks/a92b824decc7b369180f4c30241e91f149c20e96",
-    "inputs": ["/START"],
-    "outputs": ["/A", "/B"]
-  },
-  "previousJobs": []
-}, {
-  "id": "399b29ca-ed1b-4052-994c-aef55a39fb4b",
-  "status": "Ready",
-  "startedAt": null,
-  "endedAt": null,
-  "exception": null,
-  "notebook": {
-    "id": "fececd88044240b980f7b392a89b5493c8201e23",
-    "path": "blueprint/tests/2.ipynb",
-    "commitId": "b1c4d0db22fcd94ae0718319756d979f3c62490a",
-    "fetchUrl": "/api/v1/repositories/9bf7399763ff968e4dbaf1bef11ad7b8f5a75c09/commits/b1c4d0db22fcd94ae0718319756d979f3c62490a/notebooks/fececd88044240b980f7b392a89b5493c8201e23",
-    "inputs": ["/A"],
-    "outputs": ["/C", "/D", "/F"]
-  },
-  "previousJobs": ["1424026a-a3e4-4af2-9ac7-b910f98f213d"]
-}, {
-  "id": "b6271f43-5eea-417b-9538-8e017926712e",
-  "status": "Ready",
-  "startedAt": null,
-  "endedAt": null,
-  "exception": null,
-  "notebook": {
-    "id": "3f545669d5726660f1f8b4e29379f3d03a37b003",
-    "path": "blueprint/tests/3.ipynb",
-    "commitId": "b1c4d0db22fcd94ae0718319756d979f3c62490a",
-    "fetchUrl": "/api/v1/repositories/9bf7399763ff968e4dbaf1bef11ad7b8f5a75c09/commits/b1c4d0db22fcd94ae0718319756d979f3c62490a/notebooks/3f545669d5726660f1f8b4e29379f3d03a37b003",
-    "inputs": ["/B", "/C"],
-    "outputs": ["/E"]
-  },
-  "previousJobs": ["399b29ca-ed1b-4052-994c-aef55a39fb4b", "1424026a-a3e4-4af2-9ac7-b910f98f213d"]
-}, {
-  "id": "323a8080-6449-47d0-877b-fb6f679a5b77",
-  "status": "Ready",
-  "startedAt": null,
-  "endedAt": null,
-  "exception": null,
-  "notebook": {
-    "id": "fe699b6dde2e8fd27ca22f6c8c97b8a8cbf9463d",
-    "path": "blueprint/tests/4.ipynb",
-    "commitId": "b1c4d0db22fcd94ae0718319756d979f3c62490a",
-    "fetchUrl": "/api/v1/repositories/9bf7399763ff968e4dbaf1bef11ad7b8f5a75c09/commits/b1c4d0db22fcd94ae0718319756d979f3c62490a/notebooks/fe699b6dde2e8fd27ca22f6c8c97b8a8cbf9463d",
-    "inputs": ["/D", "/E", "/F"],
-    "outputs": ["/END"]
-  },
-  "previousJobs": ["399b29ca-ed1b-4052-994c-aef55a39fb4b", "b6271f43-5eea-417b-9538-8e017926712e", "1424026a-a3e4-4af2-9ac7-b910f98f213d"]
-}]
 
 const hexToLuma = (colour) => {
   const hex = colour.replace(/#/, '');
@@ -148,6 +85,17 @@ export const JobList = ({jobs, callback}) => (
   </List>
 )
 
+const stratify = d3dag.dagStratify()
+  .id(n => n.id)
+  .parentIds(n => n.previousJobs);
+
+const layout = d3dag.sugiyama().layering(d3dag.layeringCoffmanGraham())
+  .decross(d3dag.decrossTwoLayer().order(d3dag.twolayerMedian()))
+  .coord(d3dag.coordCenter())
+  .separation(() => 1);
+
+const pathFactory = d3.line().curve(d3.curveCatmullRom).x(d => d.y).y(d => d.x);
+
 export const DirectedAcyclicGraph = ({jobs = [], setSelectedJobIdCallback}) => {
   return (
     <Grid columns={2} stackable divided>
@@ -155,11 +103,15 @@ export const DirectedAcyclicGraph = ({jobs = [], setSelectedJobIdCallback}) => {
         <JobList jobs={jobs} callback={setSelectedJobIdCallback}/>
       </Grid.Column>
       <Grid.Column width={11} style={{height: 500, padding: 0}}>
-        <AutoSizer>
-          {({height, width}) => (
-            <D3Dag height={height} width={width} jobs={jobs}/>
-          )}
-        </AutoSizer>
+        <UncontrolledReactSVGPanZoom width={500} height={500} background={'white'}
+
+        >
+          <svg>
+            {jobs?.length > 0 && (
+              <D3Graph2 data={jobs} createDag={data => stratify(data)} layout={layout} line={pathFactory}/>
+            )}
+          </svg>
+        </UncontrolledReactSVGPanZoom>
       </Grid.Column>
     </Grid>
   );
