@@ -1,4 +1,4 @@
-import React from 'react'
+import React, {useMemo} from 'react'
 import PropTypes from 'prop-types';
 import ColorHash from "color-hash";
 
@@ -44,49 +44,41 @@ const GraphCurve = ({d, stroke}) => (
 const nodeWidth = 68;
 const nodeHeight = 26;
 
-class D3Graph extends React.Component {
+export const D3Graph = ({data, dagFn, layoutFn, lineFn, highlighted}) => {
 
-  static getDerivedStateFromProps(props) {
+  const dag = useMemo(() => {
     // Convert to dag
-    const dag = props.createDag(props.data);
-    const {
-      width = dag.size() * nodeHeight,
-      height = dag.size() * nodeWidth
-    } = props;
-
+    const dag = dagFn(data);
+    const width = dag.size() * nodeHeight
+    const height = dag.size() * nodeWidth
     // Compute the coordinates
-    const layoutDag = props.layout.size([width, height])(dag);
-    return {
-      dag: layoutDag
-    }
-  }
+    return layoutFn.size([width, height])(dag);
+  }, [data, dagFn, layoutFn]);
 
-  render() {
-
-    if (!this.state.dag) return <></>;
-
-    return (
-      <>
-        {/*Use link source and target to generate gradient definition.*/}
-        <defs>
-          {this.state.dag.links().map(({source, target}) => (
-            <GraphGradient source={source} target={target}/>
-          ))}
-        </defs>
-        {this.state.dag.links().map(({points, source, target}) => (
-          <GraphCurve d={this.props.line(points)} stroke={`url(#${source.id}-${target.id})`}/>
+  return (
+    <>
+      {/*Use link source and target to generate gradient definition.*/}
+      <defs>
+        {dag.links().map(({source, target}) => (
+          <GraphGradient source={source} target={target}/>
         ))}
-        {/*Render the nodes*/}
-        {this.state.dag.descendants().map(node => (
+      </defs>
+      {dag.links().map(({points, source, target}) => (
+        <GraphCurve d={lineFn(points)} stroke={`url(#${source.id}-${target.id})`}/>
+      ))}
+      {/*Render the nodes*/}
+      {dag.descendants().map(node => {
+        const factor = node.data.notebook.id === highlighted ? 1.1 : 1;
+        return (
           <GraphNode x={node.x} y={node.y}
                      color={hash.hex(node.data.notebook.id)}
-                     width={nodeWidth} height={nodeHeight}
+                     width={nodeWidth * factor} height={nodeHeight * factor}
                      label={node.data.notebook.id.substring(0, 7)}
           />
-        ))}
-      </>
-    );
-  }
+        )
+      })}
+    </>
+  )
 }
 
 // TODO: Setup proptypes. See https://github.com/erikbrinkman/d3-dag/issues/45
@@ -96,7 +88,7 @@ class D3Graph extends React.Component {
 // import ZherebkoOperator from "d3-dag/src/zherebko";
 // import Operator from "d3-dag/src/arquint";
 //
-// D3Graph2.propTypes = {
+// D3Graph.propTypes = {
 //   dag: PropTypes.instanceOf(Dag),
 //   layout: PropTypes.oneOfType([
 //     PropTypes.instanceOf(SugiyamaOperator),
@@ -107,11 +99,7 @@ class D3Graph extends React.Component {
 
 D3Graph.propTypes = {
   data: PropTypes.any.isRequired,
-  createDag: PropTypes.func.isRequired,
-  layout: PropTypes.any.isRequired,
-  line: PropTypes.func.isRequired,
-  width: PropTypes.number,
-  height: PropTypes.number
+  dagFn: PropTypes.func.isRequired,
+  layoutFn: PropTypes.func.isRequired,
+  lineFn: PropTypes.func.isRequired,
 }
-
-export default D3Graph;
