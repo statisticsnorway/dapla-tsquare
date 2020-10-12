@@ -18,7 +18,7 @@ pool:
 variables:
   - group: Hemmeligheter
   - name: 'appName'
-    value: ''
+    value: 'dapla-tsquare'
   - name: 'imageTag'
     value: '$(Build.SourceBranchName)-$(Build.SourceVersion)'
 
