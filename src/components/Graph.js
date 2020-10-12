@@ -1,4 +1,4 @@
-import React from 'react'
+import React, {useState} from 'react'
 import * as d3dag from 'd3-dag';
 import * as d3 from 'd3';
 import ColorHash from "color-hash";
@@ -40,8 +40,10 @@ function getTerm(status) {
   }
 }
 
-const JobListItem = ({id, jobId, status, startedAt, endedAt, path, callback}) => (
-  <List.Item as={Link} onClick={() => callback(jobId)}>
+const JobListItem = ({id, jobId, status, startedAt, endedAt, path, callback, onMouseEnter, onMouseLeave}) => (
+  <List.Item as={Link} onClick={() => callback(jobId)}
+             onMouseEnter={(event) => onMouseEnter(event, id)}
+             onMouseLeave={(event) => onMouseLeave(event, id)}>
     <List.Content>
       <List.Header>
         <Label style={{
@@ -69,7 +71,7 @@ const JobListItem = ({id, jobId, status, startedAt, endedAt, path, callback}) =>
   </List.Item>
 )
 
-export const JobList = ({jobs, callback}) => (
+export const JobList = ({jobs, callback, onMouseEnter, onMouseLeave}) => (
   <List divided relaxed>
     {jobs.map(job => (
       <JobListItem
@@ -81,6 +83,8 @@ export const JobList = ({jobs, callback}) => (
         startedAt={job.startedAt}
         endedAt={job.endedAt}
         callback={callback}
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
       />
     ))}
   </List>
@@ -98,18 +102,23 @@ const layout = d3dag.sugiyama().layering(d3dag.layeringCoffmanGraham())
 const pathFactory = d3.line().curve(d3.curveCatmullRom).x(d => d.y).y(d => d.x);
 
 export const DirectedAcyclicGraph = ({jobs = [], setSelectedJobIdCallback}) => {
+
+  const [hover, setHover] = useState();
+
   return (
     <Grid columns={2} stackable divided>
       <Grid.Column width={5}>
-        <JobList jobs={jobs} callback={setSelectedJobIdCallback}/>
+        <JobList jobs={jobs} callback={setSelectedJobIdCallback}
+                 onMouseEnter={(event, id) => setHover(id)}
+                 onMouseLeave={() => setHover(null)}/>
       </Grid.Column>
       <Grid.Column width={11} style={{height: 500, padding: 0}}>
         <AutoSizer>
           {({height, width}) => (
-            <UncontrolledReactSVGPanZoom width={width} height={height} background={'white'} >
-              <svg>
+            <UncontrolledReactSVGPanZoom width={width} height={height} background={'white'}>
+              <svg width={width} height={height}>
                 {jobs?.length > 0 && (
-                  <D3Graph data={jobs} dagFn={stratify} layoutFn={layout} lineFn={pathFactory} />
+                  <D3Graph data={jobs} dagFn={stratify} layoutFn={layout} lineFn={pathFactory} highlighted={hover}/>
                 )}
               </svg>
             </UncontrolledReactSVGPanZoom>
