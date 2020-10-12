@@ -4,7 +4,7 @@ import * as d3 from 'd3';
 import ColorHash from "color-hash";
 import {Grid, Label, List} from "semantic-ui-react";
 import Moment from "react-moment";
-import {UncontrolledReactSVGPanZoom} from "react-svg-pan-zoom";
+import {TOOL_PAN, UncontrolledReactSVGPanZoom} from "react-svg-pan-zoom";
 import {ExecutionIcon} from "./Executions";
 import {Link} from 'react-router-dom'
 import {D3Graph} from "./D3Graph";
@@ -115,7 +115,7 @@ export const DirectedAcyclicGraph = ({jobs = [], setSelectedJobIdCallback}) => {
       <Grid.Column width={11} style={{height: 500, padding: 0}}>
         <AutoSizer>
           {({height, width}) => (
-            <UncontrolledReactSVGPanZoom width={width} height={height} background={'white'}>
+            <UncontrolledReactSVGPanZoom width={width} height={height} background={'white'} defaultTool={TOOL_PAN}>
               <svg width={width} height={height}>
                 {jobs?.length > 0 && (
                   <D3Graph data={jobs} dagFn={stratify} layoutFn={layout} lineFn={pathFactory} highlighted={hover}/>
