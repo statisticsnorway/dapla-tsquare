@@ -1,15 +1,65 @@
-import React from 'react'
+import React, {useMemo} from 'react'
 import PropTypes from 'prop-types';
 import ColorHash from "color-hash";
 
 const hash = new ColorHash({lightness: [0.35, 0.5, 0.65]})
 
-const hexToLuma = (colour) => {
+const luminanceRgb = (color) => luminance(hexToRgb(color))
+
+const luminance = ([r, g, b]) => {
+  r = r / 255;
+  g = g / 255;
+  b = b / 255;
+  const nr = r <= 0.03928 ? r / 12.92 : Math.pow((r + 0.055) / 1.055, 2.4)
+  const ng = g <= 0.03928 ? r / 12.92 : Math.pow((r + 0.055) / 1.055, 2.4)
+  const nb = b <= 0.03928 ? r / 12.92 : Math.pow((r + 0.055) / 1.055, 2.4)
+  return nr * 0.2126 + ng * 0.7152 + nb * 0.0722;
+}
+
+const hexToRgb = (colour) => {
   const hex = colour.replace(/#/, '');
   const r = parseInt(hex.substr(0, 2), 16);
   const g = parseInt(hex.substr(2, 2), 16);
   const b = parseInt(hex.substr(4, 2), 16);
+  return [r, g, b]
+}
 
+const rgbToHex = (rgb) => {
+  let hex = '#';
+  rgb.forEach(value => {
+    if (value < 16) {
+      hex += 0;
+    }
+    hex += Math.floor(value).toString(16);
+  });
+  return hex;
+}
+
+const lightenRgb = (color, percent) => rgbToHex(lighten(hexToRgb(color), percent))
+
+const lighten = ([r, g, b], percent) => {
+  return [
+    r + (256 - r) * percent / 100,
+    g + (256 - g) * percent / 100,
+    b + (256 - b) * percent / 100
+  ]
+}
+
+const darkenRgb = (color, percent) => {
+  return rgbToHex(darken(hexToRgb(color), percent));
+}
+
+const darken = ([r, g, b], percent) => {
+  return [
+    r * (100 - percent) / 100,
+    g * (100 - percent) / 100,
+    b * (100 - percent) / 100
+  ]
+}
+
+
+const hexToLuma = (colour) => {
+  const [r, g, b] = hexToRgb(colour);
   return [
     0.299 * r,
     0.587 * g,
@@ -17,9 +67,13 @@ const hexToLuma = (colour) => {
   ].reduce((a, b) => a + b) / 255;
 };
 
-const GraphNode = ({label, x, y, width, height, color}) => (
+const GraphNode = ({label, x, y, width, height, color, highlighted = false}) => (
   <g transform={`translate(${y - width / 2}, ${x - height / 2})`}>
-    <rect width={width} height={height} fill={color} rx={5} ry={5}/>
+    {highlighted
+      ? (<rect width={width} height={height} fill={color} rx={5} ry={5}
+               stroke={hexToLuma(color) > 0.5 ? darkenRgb(color, 50) : lightenRgb(color, 50)} strokeWidth={3}/>)
+      : (<rect width={width} height={height} fill={color} rx={5} ry={5}/>)
+    }
     <text x={width / 2} y={height / 2} fill={hexToLuma(color) > 0.5 ? "#222" : "#eee"}
           fontWeight='bold' fontFamily='sans-serif' textAnchor='middle' alignmentBaseline='middle'
     >{label}</text>
@@ -44,49 +98,40 @@ const GraphCurve = ({d, stroke}) => (
 const nodeWidth = 68;
 const nodeHeight = 26;
 
-class D3Graph2 extends React.Component {
+export const D3Graph = ({data, dagFn, layoutFn, lineFn, highlighted}) => {
 
-  static getDerivedStateFromProps(props) {
+  const dag = useMemo(() => {
     // Convert to dag
-    const dag = props.createDag(props.data);
-    const {
-      width = dag.size() * nodeHeight,
-      height = dag.size() * nodeWidth
-    } = props;
-
+    const dag = dagFn(data);
     // Compute the coordinates
-    const layoutDag = props.layout.size([width, height])(dag);
-    return {
-      dag: layoutDag
-    }
-  }
+    return layoutFn.nodeSize([nodeHeight * 2, nodeWidth * 2])(dag);
+  }, [data, dagFn, layoutFn]);
 
-  render() {
-
-    if (!this.state.dag) return <></>;
-
-    return (
-      <>
-        {/*Use link source and target to generate gradient definition.*/}
-        <defs>
-          {this.state.dag.links().map(({source, target}) => (
-            <GraphGradient source={source} target={target}/>
-          ))}
-        </defs>
-        {this.state.dag.links().map(({points, source, target}) => (
-          <GraphCurve d={this.props.line(points)} stroke={`url(#${source.id}-${target.id})`}/>
+  return (
+    <>
+      {/*Use link source and target to generate gradient definition.*/}
+      <defs>
+        {dag.links().map(({source, target}) => (
+          <GraphGradient source={source} target={target}/>
         ))}
-        {/*Render the nodes*/}
-        {this.state.dag.descendants().map(node => (
+      </defs>
+      {dag.links().map(({points, source, target}) => (
+        <GraphCurve d={lineFn(points)} stroke={`url(#${source.id}-${target.id})`}/>
+      ))}
+      {/*Render the nodes*/}
+      {dag.descendants().map(node => {
+        const factor = node.data.notebook.id === highlighted ? 1.2 : 1;
+        return (
           <GraphNode x={node.x} y={node.y}
                      color={hash.hex(node.data.notebook.id)}
-                     width={nodeWidth} height={nodeHeight}
+                     width={nodeWidth * factor} height={nodeHeight * factor}
                      label={node.data.notebook.id.substring(0, 7)}
+                     highlighted={node.data.notebook.id === highlighted}
           />
-        ))}
-      </>
-    );
-  }
+        )
+      })}
+    </>
+  )
 }
 
 // TODO: Setup proptypes. See https://github.com/erikbrinkman/d3-dag/issues/45
@@ -96,7 +141,7 @@ class D3Graph2 extends React.Component {
 // import ZherebkoOperator from "d3-dag/src/zherebko";
 // import Operator from "d3-dag/src/arquint";
 //
-// D3Graph2.propTypes = {
+// D3Graph.propTypes = {
 //   dag: PropTypes.instanceOf(Dag),
 //   layout: PropTypes.oneOfType([
 //     PropTypes.instanceOf(SugiyamaOperator),
@@ -105,13 +150,9 @@ class D3Graph2 extends React.Component {
 //   ])
 // };
 
-D3Graph2.propTypes = {
+D3Graph.propTypes = {
   data: PropTypes.any.isRequired,
-  createDag: PropTypes.func.isRequired,
-  layout: PropTypes.any.isRequired,
-  line: PropTypes.func.isRequired,
-  width: PropTypes.number,
-  height: PropTypes.number
+  dagFn: PropTypes.func.isRequired,
+  layoutFn: PropTypes.func.isRequired,
+  lineFn: PropTypes.func.isRequired,
 }
-
-export default D3Graph2;
