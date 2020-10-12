@@ -7,7 +7,7 @@ import Moment from "react-moment";
 import {UncontrolledReactSVGPanZoom} from "react-svg-pan-zoom";
 import {ExecutionIcon} from "./Executions";
 import {Link} from 'react-router-dom'
-import D3Graph2 from "./D3Graph";
+import D3Graph from "./D3Graph";
 import AutoSizer from "react-virtualized-auto-sizer";
 
 const hash = new ColorHash({lightness: [0.35, 0.5, 0.65]})
@@ -109,7 +109,7 @@ export const DirectedAcyclicGraph = ({jobs = [], setSelectedJobIdCallback}) => {
             <UncontrolledReactSVGPanZoom width={width} height={height} background={'white'} >
               <svg>
                 {jobs?.length > 0 && (
-                  <D3Graph2 data={jobs} createDag={data => stratify(data)} layout={layout} line={pathFactory}/>
+                  <D3Graph data={jobs} createDag={data => stratify(data)} layout={layout} line={pathFactory}/>
                 )}
               </svg>
             </UncontrolledReactSVGPanZoom>

@@ -44,7 +44,7 @@ const GraphCurve = ({d, stroke}) => (
 const nodeWidth = 68;
 const nodeHeight = 26;
 
-class D3Graph2 extends React.Component {
+class D3Graph extends React.Component {
 
   static getDerivedStateFromProps(props) {
     // Convert to dag
@@ -105,7 +105,7 @@ class D3Graph2 extends React.Component {
 //   ])
 // };
 
-D3Graph2.propTypes = {
+D3Graph.propTypes = {
   data: PropTypes.any.isRequired,
   createDag: PropTypes.func.isRequired,
   layout: PropTypes.any.isRequired,
@@ -114,4 +114,4 @@ D3Graph2.propTypes = {
   height: PropTypes.number
 }
 
-export default D3Graph2;
+export default D3Graph;
