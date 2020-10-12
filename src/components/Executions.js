@@ -106,9 +106,9 @@ export const ExecutionComponent = ({executionId}) => {
   );
 
   const jobs = (updateData || data) ? (updateData || data).jobs : [];
-  const startingJobs = (updateData || data) ? (updateData || data).startingJobs : [];
+  const endJobs = (updateData || data) ? (updateData || data).endJobs : [];
   const jobNotebookIds = jobs.map(job => job.notebook.id)
-  const startingJobNotebookIds = startingJobs.map(job => job.notebook.id)
+  const endJobsNotebookIds = endJobs.map(job => job.notebook.id)
 
   const [{loading: startExecutionLoading}, startExecution] = useAxios({
       url: `${env('EXECUTION_HOST')}/api/v1/execution/${executionId}/start`,
@@ -157,7 +157,7 @@ export const ExecutionComponent = ({executionId}) => {
                 ? <Placeholder/>
                 : <NotebookTreeComponent onSelect={updateExecution} repositoryId={data.repositoryId}
                                          commitId={data.commitId} disabled={data.status !== "Ready"}
-                                         showCheckboxes={true} startingJobNotebookIds={startingJobNotebookIds}
+                                         showCheckboxes={true} endJobsNotebookIds={endJobsNotebookIds}
                                          checked={ loading || updateLoading ? selected : jobNotebookIds}/>
             )}
           </Grid.Column>

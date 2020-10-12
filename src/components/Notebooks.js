@@ -6,7 +6,7 @@ import 'react-checkbox-tree/lib/react-checkbox-tree.css';
 import env from "@beam-australia/react-env";
 import useAxios from "axios-hooks";
 
-const makeHierarchy = (notebooks, created, updated, showCheckboxes, startingNotebooks, checked) => {
+const makeHierarchy = (notebooks, created, updated, showCheckboxes, endJobsNotebookIds, checked) => {
 
   const containsChanges = (created, updated, leaf) => {
     return !!(created?.filter(n => n.id === leaf.id).length > 0
@@ -47,23 +47,23 @@ const makeHierarchy = (notebooks, created, updated, showCheckboxes, startingNote
   /**
    * - Remove checkbox for all folders
    * - Remove checkbox for notebooks if <code>showCheckboxes === true</code>
-   * - Disable checkbox if notebook is checked and not a leaf node in the execution graph
+   * - Disable checkbox if notebook is checked and not a end node in the execution graph
    * - Mark Notebooks as modified or added
    *
    * @param nodes Notebok tree nodes
-   * @param startingNotebooks List of leaf nodes in execution graph
+   * @param endJobsNotebookIds List of end nodes in execution graph
    * @param checked List of checked Notebooks
    */
-  const setNodeStatus = (nodes, startingNotebooks, checked, created, updated) => {
+  const setNodeStatus = (nodes, endJobsNotebookIds, checked, created, updated) => {
     for (const node of nodes) {
       if (node.children) {
         node.showCheckbox = false;
-        setNodeStatus(node.children, startingNotebooks, checked, created, updated)
+        setNodeStatus(node.children, endJobsNotebookIds, checked, created, updated)
       } else {
         node.showCheckbox = showCheckboxes;
 
         // Disable if implicitly checked by dependency
-        if (checked.includes(node.value) && !startingNotebooks.includes(node.value)) {
+        if (checked.includes(node.value) && !endJobsNotebookIds.includes(node.value)) {
           node.disabled = true;
         }
 
@@ -77,7 +77,7 @@ const makeHierarchy = (notebooks, created, updated, showCheckboxes, startingNote
     }
   }
 
-  setNodeStatus(nodes, startingNotebooks, checked, created, updated);
+  setNodeStatus(nodes, endJobsNotebookIds, checked, created, updated);
   return nodes;
 }
 
@@ -97,22 +97,39 @@ const icons = {
 export const NotebookTree =
   ({
      notebooks = [], onSelect = () => {
-    }, created = [], updated = [], disabled, showCheckboxes, checkedNotebooks, startingJobNotebookIds
+    }, created = [], updated = [], disabled, showCheckboxes, checkedNotebooks, endJobsNotebookIds
    }) => {
 
   const [checked, setChecked] = useState([]);
   const [expanded, setExpanded] = useState([]);
 
-  useEffect(() => {
-    setChecked(checkedNotebooks);
-  }, [checkedNotebooks, setChecked]);
+    useEffect(() => {
+      setChecked(checkedNotebooks);
+    }, [checkedNotebooks, setChecked]);
+
+    useEffect( () => {
+      calculateExpanded();
+    }, [setExpanded])
+
+    const calculateExpanded = () => {
+      for (const notebook of notebooks) {
+        if (checkedNotebooks.includes(notebook.id)) {
+          let folders = notebook.path.split('/');
+          if (folders.length > 1) {
+            folders.pop()
+          }
+          setExpanded(expanded => expanded.concat(folders))
+        }
+      }
+
+  }
 
   function select(checked) {
     setChecked(checked);
     onSelect(checked);
   }
 
-  return <CheckboxTree nodes={makeHierarchy(notebooks, created, updated, showCheckboxes, startingJobNotebookIds, checked)}
+  return <CheckboxTree nodes={makeHierarchy(notebooks, created, updated, showCheckboxes, endJobsNotebookIds, checked)}
                        icons={icons}
                        checked={checked}
                        expanded={expanded}
@@ -123,7 +140,7 @@ export const NotebookTree =
 }
 
 export const NotebookTreeComponent =
-  ({repositoryId, commitId, onSelect, created, updated, disabled, showCheckboxes, startingJobNotebookIds, checked = []}) => {
+  ({repositoryId, commitId, onSelect, created, updated, disabled, showCheckboxes, endJobsNotebookIds, checked = []}) => {
 
   const [{data, loading, error}] = useAxios(
     `${env('BLUEPRINT_HOST')}/api/v1/repositories/${repositoryId}/commits/${commitId}/notebooks`
@@ -142,7 +159,7 @@ export const NotebookTreeComponent =
     disabled={disabled}
     showCheckboxes={showCheckboxes}
     checkedNotebooks={checked}
-    startingJobNotebookIds={startingJobNotebookIds}
+    endJobsNotebookIds={endJobsNotebookIds}
   />
 
 }
