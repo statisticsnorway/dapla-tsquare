@@ -4,18 +4,6 @@ import ColorHash from "color-hash";
 
 const hash = new ColorHash({lightness: [0.35, 0.5, 0.65]})
 
-const luminanceRgb = (color) => luminance(hexToRgb(color))
-
-const luminance = ([r, g, b]) => {
-  r = r / 255;
-  g = g / 255;
-  b = b / 255;
-  const nr = r <= 0.03928 ? r / 12.92 : Math.pow((r + 0.055) / 1.055, 2.4)
-  const ng = g <= 0.03928 ? r / 12.92 : Math.pow((r + 0.055) / 1.055, 2.4)
-  const nb = b <= 0.03928 ? r / 12.92 : Math.pow((r + 0.055) / 1.055, 2.4)
-  return nr * 0.2126 + ng * 0.7152 + nb * 0.0722;
-}
-
 const hexToRgb = (colour) => {
   const hex = colour.replace(/#/, '');
   const r = parseInt(hex.substr(0, 2), 16);
@@ -112,17 +100,17 @@ export const D3Graph = ({data, dagFn, layoutFn, lineFn, highlighted}) => {
       {/*Use link source and target to generate gradient definition.*/}
       <defs>
         {dag.links().map(({source, target}) => (
-          <GraphGradient source={source} target={target}/>
+          <GraphGradient key={source.id+target.id} source={source} target={target}/>
         ))}
       </defs>
       {dag.links().map(({points, source, target}) => (
-        <GraphCurve d={lineFn(points)} stroke={`url(#${source.id}-${target.id})`}/>
+        <GraphCurve key={source.id+target.id} d={lineFn(points)} stroke={`url(#${source.id}-${target.id})`}/>
       ))}
       {/*Render the nodes*/}
       {dag.descendants().map(node => {
         const factor = node.data.notebook.id === highlighted ? 1.2 : 1;
         return (
-          <GraphNode x={node.x} y={node.y}
+          <GraphNode x={node.x} y={node.y} key={node.data.notebook.id}
                      color={hash.hex(node.data.notebook.id)}
                      width={nodeWidth * factor} height={nodeHeight * factor}
                      label={node.data.notebook.id.substring(0, 7)}

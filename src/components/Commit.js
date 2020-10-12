@@ -55,7 +55,7 @@ export const CommitListPlaceHolder = () => (
 
 export const CommitListComponent = ({repositoryId}) => {
 
-  const [{data, loading, error}, refetch] = useAxios(
+  const [{data, loading, error}] = useAxios(
     `${env('BLUEPRINT_HOST')}/api/v1/repositories/${repositoryId}/commits`
   )
 
@@ -132,13 +132,13 @@ const CommitDetailPlaceholder = () => (
 )
 
 const CommitDetailError = ({error}) => (
-  <div>Loading</div>
+  <div>Error: {error}</div>
 )
 
 export const CommitDetail = ({title, body, created, updated, deleted, committedAt, id, committer, children, repositoryId, commitId}) => {
   let history = useHistory();
 
-  const [{data, loading, error}, execute] = useAxios({
+  const [{loading}, execute] = useAxios({
       url: `${env('EXECUTION_HOST')}/api/v1/execute`,
       method: 'POST'
     },
@@ -203,7 +203,7 @@ export const CommitDetailComponent = ({repositoryId, commitId}) => {
   if (error) return <CommitDetailError error={error}/>
 
   const {
-    message, committedAt, committer, id,
+    message, committedAt, committer,
     updated, deleted, created
   } = data;
 

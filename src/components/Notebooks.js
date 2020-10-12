@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import CheckboxTree from 'react-checkbox-tree';
-import { Dimmer, Icon, Loader, Message, Popup } from 'semantic-ui-react'
+import { Dimmer, Icon, Loader, Message } from 'semantic-ui-react'
 
 import 'react-checkbox-tree/lib/react-checkbox-tree.css';
 import env from "@beam-australia/react-env";
@@ -53,6 +53,8 @@ const makeHierarchy = (notebooks, created, updated, showCheckboxes, endJobsNoteb
    * @param nodes Notebok tree nodes
    * @param endJobsNotebookIds List of end nodes in execution graph
    * @param checked List of checked Notebooks
+   * @param created List of created Notebooks in the given commit
+   * @param updated List of updated Notebooks in the given commit
    */
   const setNodeStatus = (nodes, endJobsNotebookIds, checked, created, updated) => {
     for (const node of nodes) {
@@ -108,10 +110,6 @@ export const NotebookTree =
     }, [checkedNotebooks, setChecked]);
 
     useEffect( () => {
-      calculateExpanded();
-    }, [setExpanded])
-
-    const calculateExpanded = () => {
       for (const notebook of notebooks) {
         if (checkedNotebooks.includes(notebook.id)) {
           let folders = notebook.path.split('/');
@@ -121,8 +119,7 @@ export const NotebookTree =
           setExpanded(expanded => expanded.concat(folders))
         }
       }
-
-  }
+    }, [checkedNotebooks, notebooks, setExpanded])
 
   function select(checked) {
     setChecked(checked);

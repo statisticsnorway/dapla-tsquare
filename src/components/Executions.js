@@ -95,8 +95,8 @@ export const ExecutionComponent = ({executionId}) => {
   const [selected, setSelected] = useState([]);
   const [selectedJobId, setSelectedJobId] = useState();
 
-  const [{data, loading, error}, refetch] = useAxios(`${env('EXECUTION_HOST')}/api/v1/execution/${executionId}`);
-  const [{data: updateData, loading: updateLoading, error: updateError}, update] = useAxios({
+  const [{data, loading}, refetch] = useAxios(`${env('EXECUTION_HOST')}/api/v1/execution/${executionId}`);
+  const [{data: updateData, loading: updateLoading}, update] = useAxios({
       url: `${env('EXECUTION_HOST')}/api/v1/execution/${executionId}`,
       method: 'PUT'
     },
@@ -179,8 +179,7 @@ export const ExecutionComponent = ({executionId}) => {
 
 const ExecutionButtonGroup = ({executionId, jobStatus, startExecutionCallback, hasSelectedNotebooks, loading, ...rest}) => {
 
-  const [{data: cancelExecutionData, error: cancelExecutionError, response: cancelExecutionResponse},
-    cancelExecution] = useAxios({
+  const [, cancelExecution] = useAxios({
       url: `${env('EXECUTION_HOST')}/api/v1/execution/${executionId}/cancel`,
       method: 'PUT'
     },
