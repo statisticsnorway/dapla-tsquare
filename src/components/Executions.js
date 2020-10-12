@@ -106,7 +106,9 @@ export const ExecutionComponent = ({executionId}) => {
   );
 
   const jobs = (updateData || data) ? (updateData || data).jobs : [];
-  const jobIds = jobs.map(job => job.notebook.id)
+  const endJobs = (updateData || data) ? (updateData || data).endJobs : [];
+  const jobNotebookIds = jobs.map(job => job.notebook.id)
+  const endJobsNotebookIds = endJobs.map(job => job.notebook.id)
 
   const [{loading: startExecutionLoading}, startExecution] = useAxios({
       url: `${env('EXECUTION_HOST')}/api/v1/execution/${executionId}/start`,
@@ -137,7 +139,7 @@ export const ExecutionComponent = ({executionId}) => {
         <Grid divided>
           <Grid.Row>
             <Grid.Column textAlign="right">
-              {(loading
+              {(loading || !data
                   ? <Placeholder/>
                   : <ExecutionButtonGroup
                     executionId={executionId}
@@ -145,21 +147,22 @@ export const ExecutionComponent = ({executionId}) => {
                     startExecutionCallback={startExecutionAction}
                     loading={loading || startExecutionLoading}
                     compact floated='right'
-                    hasSelectedNotebooks={jobIds.length > 0}
+                    hasSelectedNotebooks={jobNotebookIds.length > 0}
                   />
               )}
             </Grid.Column>
           </Grid.Row>
           <Grid.Column width={4}>
-            {(loading
+            {(loading || !data
                 ? <Placeholder/>
                 : <NotebookTreeComponent onSelect={updateExecution} repositoryId={data.repositoryId}
                                          commitId={data.commitId} disabled={data.status !== "Ready"}
-                                         showCheckboxes={true} checked={ loading || updateLoading ? selected : jobIds}/>
+                                         showCheckboxes={true} endJobsNotebookIds={endJobsNotebookIds}
+                                         checked={ loading || updateLoading ? selected : jobNotebookIds}/>
             )}
           </Grid.Column>
           <Grid.Column width={12}>
-            {(loading
+            {(loading || !data
                 ? <Placeholder/>
                 : <DirectedAcyclicGraph jobs={jobs} setSelectedJobIdCallback={setSelectedJobId}/>
             )}
