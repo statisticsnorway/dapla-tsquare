@@ -1,11 +1,9 @@
 import React from 'react'
-import {RepositoryListComponent} from "./RepoList";
-import {Breadcrumb, Container, Divider, Grid, Header, Icon} from "semantic-ui-react";
-import {Link, Route, Switch, useParams} from "react-router-dom";
-import {CommitDetailComponent, CommitListComponent, CommitListPlaceHolder} from "./Commit";
-import {ExecutionComponent, ExecutionComponent2, ExecutionListComponent} from "./Executions";
-import {DirectedAcyclicGraph} from "./Graph";
-import {LazyLog} from "react-lazylog";
+import { RepositoryListComponent } from "./RepoList";
+import { Breadcrumb, Container, Divider, Grid, Header, Icon } from "semantic-ui-react";
+import { Link, Route, Switch, useParams } from "react-router-dom";
+import { CommitDetailComponent, CommitListComponent, CommitListPlaceHolder } from "./Commit";
+import { ExecutionComponent, ExecutionListComponent } from "./Executions";
 
 
 // TODO: Move to own file.
@@ -64,13 +62,6 @@ const CommitView = () => {
   let {repositoryId, commitId} = useParams();
   return <>
     <CommitDetailComponent repositoryId={repositoryId} commitId={commitId}/>
-  </>
-}
-
-const ExecutionView = () => {
-  const {executionId} = useParams();
-  return <>
-    <ExecutionComponent executionId={executionId}/>
   </>
 }
 

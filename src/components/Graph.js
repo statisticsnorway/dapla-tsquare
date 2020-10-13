@@ -37,10 +37,12 @@ function getTerm(status) {
       return "done"
     case "Cancelled":
       return "cancelled"
+    default:
+      break;
   }
 }
 
-const JobListItem = ({id, jobId, status, startedAt, endedAt, path, callback, onMouseEnter, onMouseLeave}) => (
+const JobListItem = ({id, jobId, status, startedAt, path, callback, onMouseEnter, onMouseLeave}) => (
   <List.Item as={Link} onClick={() => callback(jobId)}
              onMouseEnter={(event) => onMouseEnter(event, id)}
              onMouseLeave={(event) => onMouseLeave(event, id)}>
@@ -81,7 +83,6 @@ export const JobList = ({jobs, callback, onMouseEnter, onMouseLeave}) => (
         path={job.notebook.path}
         status={job.status}
         startedAt={job.startedAt}
-        endedAt={job.endedAt}
         callback={callback}
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}
