@@ -1,9 +1,10 @@
 import React from 'react'
 import { RepositoryListComponent } from "./RepoList";
 import { Breadcrumb, Container, Divider, Grid, Header, Icon } from "semantic-ui-react";
-import { Link, Route, Switch, useParams } from "react-router-dom";
+import { BrowserRouter, Link, Route, Switch, useParams } from "react-router-dom";
 import { CommitDetailComponent, CommitListComponent, CommitListPlaceHolder } from "./Commit";
-import { ExecutionComponent, ExecutionListComponent } from "./Executions";
+import { ExecutionComponent } from "./Executions";
+import ExecutionListComponent from "./ExecutionListComponent"
 
 
 // TODO: Move to own file.
@@ -77,58 +78,61 @@ function AppHome() {
   return (
     <div>
       <Container style={{width: "90%"}}>
-        <Grid columns={2} >
+        <BrowserRouter>
+          <Grid columns={2} >
 
-          <Grid.Row>
-            <CustomBreadCrumb/>
-          </Grid.Row>
+            <Grid.Row>
+              <CustomBreadCrumb/>
+            </Grid.Row>
 
-          <Grid.Row>
-            <Grid.Column width={4}>
+            <Grid.Row>
+              <Grid.Column width={4}>
 
-              <Divider horizontal>
-                <Header as='h5'>
-                  <Icon name='code branch'/>
-                  Repositories
-                </Header>
-              </Divider>
-              <RepositoryListComponent/>
+                <Divider horizontal>
+                  <Header as='h5'>
+                    <Icon name='code branch'/>
+                    Repositories
+                  </Header>
+                </Divider>
+                <RepositoryListComponent/>
 
-              <Divider horizontal>
-                <Header as='h5'>
-                  <Icon name='cogs'/>
-                  Executions
-                </Header>
-              </Divider>
+                <Divider horizontal>
+                  <Header as='h5'>
+                    <Icon name='cogs'/>
+                    Executions
+                  </Header>
+                </Divider>
 
-              <ExecutionListComponent/>
+                <ExecutionListComponent/>
 
-            </Grid.Column>
-            <Grid.Column width={12}>
-              <Switch>
-                <Route path="/repository/:repositoryId/commit/:commitId">
-                  <CommitView/>
-                </Route>
+              </Grid.Column>
+              <Grid.Column width={12}>
 
-                <Route path="/test">
-                  <DagView/>
-                </Route>
+                <Switch>
+                  <Route path="/repository/:repositoryId/commit/:commitId">
+                    <CommitView/>
+                  </Route>
 
-                <Route path="/repository/:repositoryId">
-                  <RepositoryView/>
-                </Route>
-                <Route path="/execution/:executionId">
-                  {/*<ExecutionView/>*/}
-                  <DagView/>
-                </Route>
-                <Route>
-                  <CommitListPlaceHolder/>
-                </Route>
-              </Switch>
-            </Grid.Column>
-          </Grid.Row>
+                  <Route path="/test">
+                    <DagView/>
+                  </Route>
 
-        </Grid>
+                  <Route path="/repository/:repositoryId">
+                    <RepositoryView/>
+                  </Route>
+                  <Route path="/execution/:executionId">
+                    {/*<ExecutionView/>*/}
+                    <DagView/>
+                  </Route>
+                  <Route>
+                    <CommitListPlaceHolder/>
+                  </Route>
+                </Switch>
+              </Grid.Column>
+            </Grid.Row>
+
+          </Grid>
+        </BrowserRouter>
       </Container>
 
     </div>
