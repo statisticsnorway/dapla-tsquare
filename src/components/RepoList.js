@@ -46,5 +46,3 @@ export const RepositoryListComponent = () => {
 
   )
 }
-
-export default RepositoryList

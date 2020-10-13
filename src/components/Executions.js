@@ -1,12 +1,12 @@
-import React, { useEffect, useState } from 'react'
-import { Button, Card, Grid, List, Placeholder, Popup, Segment } from "semantic-ui-react";
+import React, { useState } from 'react'
+import { Button, Grid, List, Placeholder, Popup, Segment } from "semantic-ui-react";
 import useAxios from "axios-hooks";
 import env from "@beam-australia/react-env";
 import Moment from "react-moment";
 import { NotebookTreeComponent } from "./Notebooks";
 import { Link } from "react-router-dom";
 import { LazyLog } from "react-lazylog";
-import {DirectedAcyclicGraph} from "./Graph";
+import { DirectedAcyclicGraph } from "./Graph";
 
 export const ExecutionList = ({executions}) => (
   <List divided relaxed>
@@ -68,26 +68,6 @@ const ExecutionListItem = ({commitId, executionId, createdAt, status}) => {
       </List.Content>
     </List.Item>
   )
-}
-
-export const ExecutionListComponent = ({interval = 5000}) => {
-
-  const [{data, loading, error}, refresh] = useAxios(`${env('EXECUTION_HOST')}/api/v1/execution`);
-
-  useEffect(() => {
-    const intervalRef = setInterval(() => {
-      refresh();
-    }, interval);
-    return () => clearInterval(intervalRef);
-  });
-
-  if (loading || !data) return <div>loading</div>
-  if (error) return (<div><p>{JSON.stringify(error)}</p></div>)
-
-  return (
-    <ExecutionList executions={data}/>
-  )
-
 }
 
 export const ExecutionComponent = ({executionId}) => {
@@ -200,27 +180,4 @@ const ExecutionButtonGroup = ({executionId, jobStatus, startExecutionCallback, h
       {/*TODO check if job is running before trying to cancel*/}
     </Button.Group>
   )
-}
-
-export const ExecutionComponent2 = () => {
-  return (
-    <Card fluid>
-      <Card.Content>
-        <Card.Header>
-          <ExecutionButtonGroup compact floated='right'/>
-          Header
-        </Card.Header>
-        <Card.Description>
-          Content
-        </Card.Description>
-      </Card.Content>
-      <Card.Content>
-        <DirectedAcyclicGraph/>
-      </Card.Content>
-      <Card.Content style={{height: 400, padding: 0}}>
-        <LazyLog stream
-                 url="http://localhost:10180/api/v1/execution/340072cf-328f-4bc7-b9cf-4670e1d887be/job/340072cf-328f-4bc7-b9cf-4670e1d887be/log"/>
-      </Card.Content>
-    </Card>
-  );
 }
