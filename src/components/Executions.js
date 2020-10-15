@@ -151,7 +151,7 @@ export const ExecutionComponent = ({executionId}) => {
       </Segment>
       { selectedJobId && executionId &&
       <LazyLog stream
-               url={`http://localhost:10180/api/v1/execution/${executionId}/job/${selectedJobId}/log`}/>
+               url={`${env('EXECUTION_HOST')}/api/v1/execution/${executionId}/job/${selectedJobId}/log`}/>
       }
     </>
   )
