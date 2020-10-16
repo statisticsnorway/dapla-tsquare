@@ -111,7 +111,7 @@ const CommitInfoMessage = ({updated, deleted, created}) => (
 
         )}
 
-        {(deleted || updated || created) || (
+        {(deleted.length === 0 && updated.length === 0 && created.length === 0) && (
           <List.Item>
             no changes in this commits
           </List.Item>
