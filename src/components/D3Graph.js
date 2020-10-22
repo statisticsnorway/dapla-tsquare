@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react'
+import React, {useEffect, useMemo, useRef, useState} from 'react'
 import PropTypes from 'prop-types';
 import ColorHash from "color-hash";
 
@@ -55,23 +55,53 @@ const hexToLuma = (colour) => {
   ].reduce((a, b) => a + b) / 255;
 };
 
-const GraphNode = ({label, x, y, width, height, color, highlighted = false}) => (
+/**
+ * Shorten the text if width is too big.
+ */
+const EllipsisFilename = ({text, maxWidth, ...props}) => {
+
+  const container = useRef(null);
+  const [clientWidth, setClientWidth] = useState(null);
+  useEffect(() => {
+    setClientWidth(container.current.clientWidth)
+  }, [container]);
+
+  return (
+    <text ref={container} {...props}>
+      <tspan fontWeight='bold'>{clientWidth > maxWidth ? text.substring(0, 13) + "..." : text}</tspan>
+    </text>
+  )
+}
+
+const GraphNode = ({x, y, width, height, color, highlighted = false, notebook}) => (
   <g transform={`translate(${y - width / 2}, ${x - height / 2})`}>
     {highlighted
       ? (<rect width={width} height={height} fill={color} rx={5} ry={5}
                stroke={hexToLuma(color) > 0.5 ? darkenRgb(color, 50) : lightenRgb(color, 50)} strokeWidth={3}/>)
       : (<rect width={width} height={height} fill={color} rx={5} ry={5}/>)
     }
-    <text x={width / 2} y={height / 2} fill={hexToLuma(color) > 0.5 ? "#222" : "#eee"}
-          fontWeight='bold' fontFamily='sans-serif' textAnchor='middle' alignmentBaseline='middle'
-    >{label}</text>
+    <g width={width} height={height} fontSize={14}
+       textAnchor='left'
+       alignmentBaseline='middle'
+       fill={hexToLuma(color) > 0.5 ? "#222" : "#eee"}
+    >
+      <EllipsisFilename x={3} y={15} maxWidth={width} text={notebook.path.split(/(\\|\/)/g).pop()}/>
+      <text x={7} y={32} fontSize={12}>
+        <tspan fontFamily={"Icons"}>{"\uf126"}</tspan>
+        <tspan> {notebook.id.substring(0, 7)} </tspan>
+        {/*Does not work yet*/}
+        {/*<tspan fontFamily={"Icons"}>{"\uf126"}</tspan>*/}
+        {/*<tspan> {nb.commitId.substring(0, 7)} </tspan>*/}
+      </text>
+    </g>
   </g>
 )
 
 const GraphGradient = ({source, target}) => (
   <linearGradient id={`${source.id}-${target.id}`} gradientUnits='userSpaceOnUse'
                   x1={source.y} x2={target.y}
-                  y1={source.x} y2={target.y}>
+                  y1={source.x} y2={target.y}
+  >
     <stop offset='0%' stopColor={hash.hex(source.data.notebook.id)}/>
     <stop offset='100%' stopColor={hash.hex(target.data.notebook.id)}/>
   </linearGradient>
@@ -83,8 +113,8 @@ const GraphCurve = ({d, stroke}) => (
   </g>
 )
 
-const nodeWidth = 68;
-const nodeHeight = 26;
+const nodeWidth = 120;
+const nodeHeight = 38;
 
 export const D3Graph = ({data, dagFn, layoutFn, lineFn, highlighted}) => {
 
@@ -92,7 +122,7 @@ export const D3Graph = ({data, dagFn, layoutFn, lineFn, highlighted}) => {
     // Convert to dag
     const dag = dagFn(data);
     // Compute the coordinates
-    return layoutFn.nodeSize([nodeHeight * 2, nodeWidth * 2])(dag);
+    return layoutFn.nodeSize([nodeHeight * 2, nodeWidth * 1.5])(dag);
   }, [data, dagFn, layoutFn]);
 
   return (
@@ -100,21 +130,20 @@ export const D3Graph = ({data, dagFn, layoutFn, lineFn, highlighted}) => {
       {/*Use link source and target to generate gradient definition.*/}
       <defs>
         {dag.links().map(({source, target}) => (
-          <GraphGradient key={source.id+target.id} source={source} target={target}/>
+          <GraphGradient key={source.id + target.id} source={source} target={target}/>
         ))}
       </defs>
       {dag.links().map(({points, source, target}) => (
-        <GraphCurve key={source.id+target.id} d={lineFn(points)} stroke={`url(#${source.id}-${target.id})`}/>
+        <GraphCurve key={source.id + target.id} d={lineFn(points)} stroke={`url(#${source.id}-${target.id})`}/>
       ))}
       {/*Render the nodes*/}
       {dag.descendants().map(node => {
-        const factor = node.data.notebook.id === highlighted ? 1.2 : 1;
         return (
           <GraphNode x={node.x} y={node.y} key={node.data.notebook.id}
                      color={hash.hex(node.data.notebook.id)}
-                     width={nodeWidth * factor} height={nodeHeight * factor}
-                     label={node.data.notebook.id.substring(0, 7)}
+                     width={nodeWidth} height={nodeHeight}
                      highlighted={node.data.notebook.id === highlighted}
+                     notebook={node.data.notebook}
           />
         )
       })}
@@ -122,10 +151,6 @@ export const D3Graph = ({data, dagFn, layoutFn, lineFn, highlighted}) => {
   )
 }
 
-// TODO: Setup proptypes. See https://github.com/erikbrinkman/d3-dag/issues/45
-//
-// import Dag from "d3-dag/src/dag/node";
-// import SugiyamaOperator from "d3-dag/src/sugiyama";
 // import ZherebkoOperator from "d3-dag/src/zherebko";
 // import Operator from "d3-dag/src/arquint";
 //
